@@ -2,6 +2,16 @@
 
 Rule: nothing is added to Introcut without its license listed here, in the same change. "verify" means the license has not yet been confirmed from the project's own repository and must be before use.
 
+## Installed (Milestone 1)
+| Name | Purpose | License |
+|---|---|---|
+| React, React DOM | UI | MIT |
+| Zustand | State store | MIT |
+| Vite, @vitejs/plugin-react | Dev server and build | MIT |
+| TypeScript | Type checking | Apache-2.0 |
+
+(Transitive dependencies come from `package-lock.json`; run a license audit in Milestone 13.)
+
 ## Planned dependencies (not yet installed)
 | Name | Purpose | License |
 |---|---|---|

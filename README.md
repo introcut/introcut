@@ -14,6 +14,13 @@ No backend, no paid APIs, no uploads: your media never leaves your device.
 
 > **Status:** planning complete, building starts at Milestone 1. See [`STATUS.md`](STATUS.md).
 
+## Run it
+```
+npm install
+npm run dev      # open http://localhost:5173 in Chrome or Edge
+```
+Milestone 1 (editor shell): drop or record media, see its details, add it to the timeline and play it back in a 9:16 phone preview. Press **Load demo** for three sample scenes.
+
 ## Docs
 - [`docs/V1-FEATURES.md`](docs/V1-FEATURES.md) — what V1 includes, with a walk-through
 - [`docs/PLAN.md`](docs/PLAN.md) — architecture, JSON schema, milestones, risks
