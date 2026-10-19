@@ -9,6 +9,8 @@ Rule: nothing is added to Introcut without its license listed here, in the same 
 | Zustand | State store | MIT |
 | Vite, @vitejs/plugin-react | Dev server and build | MIT |
 | TypeScript | Type checking | Apache-2.0 |
+| Zod | Project schema validation | MIT |
+| Vitest | Unit tests (dev only) | MIT |
 
 (Transitive dependencies come from `package-lock.json`; run a license audit in Milestone 13.)
 

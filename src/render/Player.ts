@@ -67,8 +67,14 @@ export class Player {
     this.onTime(this.t, this.playing);
   }
 
-  /** Call when the project changed (a scene was added, etc.). */
+  /** Call when the project changed (a scene was added, trimmed, deleted…). */
   refresh() {
+    const total = this.totalMs;
+    if (total === 0 && this.playing) return this.pause();
+    if (this.t > total) {
+      this.t = total;
+      this.onTime(this.t, this.playing);
+    }
     this.renderOnce();
   }
 
@@ -146,9 +152,13 @@ export class Player {
       this.drawHint("Add media, then press \"Add to timeline\"");
       return;
     }
-    const item = project.media.find((m) => m.id === p.scene.source.mediaId);
-    const el = item ? this.mediaEl(item) : null;
-    if (!item || !el) return;
+    const item = project.media.find((m) => m.id === p.scene.source?.mediaId);
+    if (!item) return;
+    const el = this.mediaEl(item);
+    if (!el) {
+      this.drawHint(`Missing file: ${item.name}`);
+      return;
+    }
 
     if (el instanceof HTMLVideoElement) {
       this.syncVideo(el, item.id, p);
@@ -167,7 +177,7 @@ export class Player {
   /** Keep the <video> element at the right moment of the clip; let it play on its own while playing, to keep sound smooth. */
   private syncVideo(el: HTMLVideoElement, mediaId: string, p: PlacedScene) {
     this.stopOtherVideo(mediaId);
-    const target = (p.scene.source.inMs + (this.t - p.startMs)) / 1000;
+    const target = ((p.scene.source?.inMs ?? 0) + (this.t - p.startMs)) / 1000;
     const drift = Math.abs(el.currentTime - target);
     if (this.playing) {
       if (drift > 0.3) el.currentTime = target;

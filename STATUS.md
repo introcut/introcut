@@ -3,9 +3,20 @@
 _Last updated: 2026-10-19. Update this file whenever something changes._
 
 ## Where we are
-Planning is done and **Milestone 1 (editor shell) is built**. Next: Milestone 2 (project core).
+Planning is done. **Milestones 1 (editor shell) and 2 (project core) are built.** Next: Milestone 3 (brain + brief).
 
-Run it: `npm install` then `npm run dev` and open http://localhost:5173 (Chrome or Edge).
+Run it: `npm install` then `npm run dev` and open http://localhost:5173 (Chrome or Edge). Unit tests: `npm test`.
+
+**Milestone 2 notes for the next person**
+- **The contract:** `src/model/schema.ts` is the full v2 project schema (Zod, every field has a default). `src/model/ops.ts` is the ONLY way to change a project: `applyOp(project, op, actor)` with `actor` = `"user"` or `"ai"`. Never mutate a project directly. Add new ops there (and tests).
+- **Locks:** a user trim/move sets a lock on that scene; an `"ai"` op on a locked field is refused (`reason` says why). Only the user can change locks. The store's `dispatch(op, { actor, coalesce })` records undo steps; `coalesce` merges rapid edits (slider drags) into one step. `dispatchMany` = one undo step for several ops.
+- **Saving:** `src/storage/opfs.ts` keeps `project.json`, `media/<id>` and `thumbs/<id>.txt` in the browser's private file system (OPFS). `autosave.ts` writes 500 ms after each change and when the tab is hidden. Orphaned files are cleaned up on load/replace only (so undo never loses a file within a session).
+- **Import/export:** export is the project JSON only (no media). Importing flags media without files as *missing*; dropping the original files re-links them by name + size.
+- Undo history is **not** saved across reloads (by design for now).
+- One project at a time; an "open recent" list is not built yet (A1 in the feature list is partly done: new / import / auto-save).
+- Not built in M2 (belongs to M5): "redo this scene" and the chat box.
+- `Player.ts` keeps `<video>` elements for media of removed/replaced projects until the tab closes (small leak, to be replaced by the shared renderer in M9).
+- Verified: 29 unit tests (schema, ops, locks, history, repair) + a 39-check headless-browser run (trim, lock chip, coalesced undo, AI refused on locked scene, reorder by button and drag, delete, replace, reload persistence incl. a recorded clip, export, clear, import, re-link, bad file). The browser tests live outside the repo for now; adding them to CI is planned for M13.
 
 **Milestone 1 notes for the next person**
 - `src/model/types.ts` is a *subset* of the schema in `docs/PLAN.md` §5. M2 replaces it with the full Zod schema + ops.
@@ -20,7 +31,7 @@ Run it: `npm install` then `npm run dev` and open http://localhost:5173 (Chrome 
 |---|---|---|---|
 | 0 | Repo, CI, schema contract, interfaces | _unassigned_ | todo |
 | 1 | Editor shell (upload + record, media bin, 9:16 preview, timeline) | Bashanta (with Claude) | **done** (needs your manual test: real screen recording and your own clips) |
-| 2 | Project core (schema, ops, undo, locks, OPFS, import/export) | _unassigned_ | todo |
+| 2 | Project core (schema, ops, undo, locks, OPFS, import/export) | Bashanta (with Claude) | **done** (needs your manual test, see steps in chat) |
 | 3 | Brain + brief (LLM provider, readiness, format, script, shot list) | _unassigned_ | todo |
 | 4 | Direction desk (generator registry, prompts, tracker) | _unassigned_ | todo |
 | 5 | Analyze & Decide engine | _unassigned_ | todo |

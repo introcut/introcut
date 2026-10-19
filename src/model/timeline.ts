@@ -7,9 +7,10 @@ export interface PlacedScene {
   endMs: number;
 }
 
-export const sceneLengthMs = (s: Scene) => Math.max(0, s.source.outMs - s.source.inMs);
+/** Scenes with a source play from inMs to outMs; scenes without one (cards, fillers) use their planned slot length. */
+export const sceneLengthMs = (s: Scene) => Math.max(0, s.source ? s.source.outMs - s.source.inMs : s.slot.targetMs);
 
-/** Scenes play back to back (cuts only in M1). Start of each scene = sum of previous lengths. */
+/** Scenes play back to back (cuts only for now). Start of each scene = sum of previous lengths. */
 export function layout(project: Project): { placed: PlacedScene[]; totalMs: number } {
   let t = 0;
   const placed = project.scenes.map((scene, index) => {

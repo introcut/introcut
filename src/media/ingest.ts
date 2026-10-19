@@ -18,7 +18,7 @@ export async function ingestFile(
   try {
     const { probe, thumb } = await probeFile(file, kind, url, durationHintMs);
     return {
-      item: { id: crypto.randomUUID(), kind, name: file.name, origin, probe },
+      item: { id: crypto.randomUUID(), kind, name: file.name, origin, watermark: "unknown", probe },
       asset: { url, thumb, file },
     };
   } catch (e) {
