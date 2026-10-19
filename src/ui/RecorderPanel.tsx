@@ -56,7 +56,7 @@ export function RecorderPanel() {
           {active.kind !== "voice" && <video ref={monitor} autoPlay muted playsInline className="monitor" />}
           <div className="row">
             <span className="rec-dot" /> Recording {active.kind}… {secs}s
-            <button className="danger" onClick={() => active.rec.stop()}>
+            <button className="go sm" onClick={() => active.rec.stop()}>
               Stop
             </button>
           </div>

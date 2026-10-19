@@ -15,9 +15,9 @@ export function Timeline() {
 
   if (placed.length === 0) {
     return (
-      <footer className="timeline empty">
-        <span className="muted">Timeline is empty. Add media from the bin and the scenes appear here, in playing order.</span>
-      </footer>
+      <div className="timeline empty">
+        <span className="mute">The timeline is empty. Add material on the Board and the scenes appear here, in playing order.</span>
+      </div>
     );
   }
 
@@ -28,7 +28,7 @@ export function Timeline() {
   };
 
   return (
-    <footer className="timeline">
+    <div className="timeline">
       <div className="track">
         {placed.map((p) => {
           const item = project.media.find((m) => m.id === p.scene.source?.mediaId);
@@ -74,6 +74,6 @@ export function Timeline() {
         })}
         <div className="playhead" style={{ left: `${(Math.min(playheadMs, totalMs) / Math.max(1, totalMs)) * 100}%` }} />
       </div>
-    </footer>
+    </div>
   );
 }

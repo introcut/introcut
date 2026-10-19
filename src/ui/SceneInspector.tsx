@@ -4,6 +4,7 @@ import { MIN_SCENE_MS, PHOTO_MAX_MS } from "../model/ops";
 import { useStore } from "../store/useStore";
 import { seekTo } from "./Preview";
 import { fmtDur } from "./format";
+import { Icon } from "./Icon";
 
 const LOCK_LABEL: Record<LockKey, string> = {
   trim: "trim",
@@ -25,11 +26,7 @@ export function SceneInspector() {
   const p = placed.find((x) => x.scene.id === selectedId);
 
   if (!p) {
-    return (
-      <div className="panel inspector muted">
-        Select a scene on the timeline to trim, move, replace or delete it.
-      </div>
-    );
+    return <div className="inspector mute">Select a scene to trim, move, replace or delete it.</div>;
   }
 
   const { scene, index } = p;
@@ -49,7 +46,7 @@ export function SceneInspector() {
   const replaceable = project.media.filter((m) => m.kind !== "audio" && m.id !== item?.id);
 
   return (
-    <div className="panel inspector">
+    <div className="inspector">
       <div className="row between">
         <h3>
           Scene {index + 1} of {placed.length} · {item?.name ?? "no media"}
@@ -81,7 +78,7 @@ export function SceneInspector() {
                 End <b>{sec(src.outMs)} s</b>
                 <input type="range" min={0} max={maxMs} step={50} value={src.outMs} onChange={(e) => trim({ outMs: Number(e.target.value) })} />
               </label>
-              <div className="muted">
+              <div className="mute">
                 Length {fmtDur(src.outMs - src.inMs)} of {fmtDur(item.probe.durationMs)}
               </div>
             </>
@@ -90,10 +87,10 @@ export function SceneInspector() {
       )}
 
       <div className="row wrap">
-        <button disabled={index === 0} onClick={() => dispatch({ type: "moveScene", sceneId: scene.id, toIndex: index - 1 })}>
+        <button className="sm" disabled={index === 0} onClick={() => dispatch({ type: "moveScene", sceneId: scene.id, toIndex: index - 1 })}>
           ← Earlier
         </button>
-        <button disabled={index === placed.length - 1} onClick={() => dispatch({ type: "moveScene", sceneId: scene.id, toIndex: index + 1 })}>
+        <button className="sm" disabled={index === placed.length - 1} onClick={() => dispatch({ type: "moveScene", sceneId: scene.id, toIndex: index + 1 })}>
           Later →
         </button>
         <select
@@ -109,17 +106,18 @@ export function SceneInspector() {
             </option>
           ))}
         </select>
-        <button className="danger" onClick={() => dispatch({ type: "removeScene", sceneId: scene.id })}>
+        <span className="sp" />
+        <button className="sm danger" onClick={() => dispatch({ type: "removeScene", sceneId: scene.id })}>
           Delete scene
         </button>
       </div>
 
       <div className="locks">
-        <span className="muted">Locked against AI changes:</span>
-        {lockedKeys.length === 0 && <span className="muted"> nothing yet</span>}
+        <span className="mute">Locked against AI changes:</span>
+        {lockedKeys.length === 0 && <span className="mute"> nothing yet</span>}
         {lockedKeys.map((k) => (
           <button key={k} className="chip" title="Click to unlock" onClick={() => dispatch({ type: "setLock", sceneId: scene.id, lock: k, value: false })}>
-            🔒 {LOCK_LABEL[k]} ✕
+            <Icon name="lock" size={12} /> {LOCK_LABEL[k]} ✕
           </button>
         ))}
       </div>

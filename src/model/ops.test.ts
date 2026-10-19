@@ -166,6 +166,11 @@ describe("move, replace, rename", () => {
   it("renames", () => {
     expect(applyOp(emptyProject(), { type: "renameProject", name: "Garlic" }).project.name).toBe("Garlic");
   });
+  it("saves the idea in the brief, and ignores a repeat", () => {
+    const p = applyOp(emptyProject(), { type: "setIdea", idea: "A monkey plants garlic" }).project;
+    expect(p.brief.idea).toBe("A monkey plants garlic");
+    expect(applyOp(p, { type: "setIdea", idea: "A monkey plants garlic" }).changed).toBe(false);
+  });
   it("unknown scene is refused", () => {
     const op: Op = { type: "removeScene", sceneId: "nope" };
     expect(applyOp(setup(), op).changed).toBe(false);

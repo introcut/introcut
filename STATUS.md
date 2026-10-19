@@ -7,7 +7,13 @@ Planning is done. **Milestones 1 (editor shell) and 2 (project core) are built.*
 
 Run it: `npm install` then `npm run dev` and open http://localhost:5173 (Chrome or Edge). Unit tests: `npm test`.
 
-**UI direction: a new stage-based design is proposed in `docs/UX.md` (mock: `docs/ux/prototype.html`) and awaits approval. The SelfGlance restyle below is superseded by it; do not build more on it.**
+**UI v3 "Editorial" is built (awaiting the owner's approval of how it looks and feels).** Design rationale and the feature-to-screen map are in `docs/UX.md`; the look is chosen in `docs/ux/styles.html` (option A).
+- Screens (`src/ui/`): `StartScreen` (the one question, saved to `project.brief.idea` via the new `setIdea` op), `VerdictScreen` (honest "not built yet" until M3), `BoardScreen` (scene cards, a Next banner worked out from real state, drag to reorder), `TimelineScreen` (dark preview stage, scene inspector, timeline). Secondary things are side sheets (`Sheets.tsx`): scene, Media (the old media bin + recorder), Export (project file only; video export is M12), Settings (new project, clear data, JSON view).
+- View state (`uiStore.ts`: view, sheet, rail) is separate from the project store. The rail is collapsed to icons by default. Re-skinning = edit tokens in `src/theme.css`.
+- Deliberately not shown because not built: Look, Sound, chat/command bar, idea verdict. They arrive with M3–M8 (see `docs/UX.md`).
+- Not designed yet: presenter-mode board, clips-only board, mobile, empty/error states for later milestones.
+- Verified: 30 unit tests, build, and a 50-check headless-browser run of the new UI (`ui.mjs`, outside the repo) covering Start → Verdict → Board, trim/locks/undo/AI-refusal, reorder by buttons and drag on both the board and the timeline, delete/replace, scene sheet, reload persistence, recorded clip, project export/clear/import/re-link, bad import.
+- The earlier SelfGlance restyle (`3ec88f8`) and the dashboard prototypes are replaced.
 
 **(Superseded) UI restyle, step 1**
 - `src/theme.css` is the SelfGlance "soft neo-brutalism" theme, copied unchanged and imported once in `main.tsx`; `src/styles.css` holds only Introcut layout and pieces built from its tokens. Light/dark follow the OS; the sidebar toggle (`ui/ThemeToggle.tsx`, `ui/theme.ts`) forces one and remembers it in `localStorage` (optional, never required).

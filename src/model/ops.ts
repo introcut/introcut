@@ -13,7 +13,8 @@ export type Op =
   | { type: "trimScene"; sceneId: string; inMs?: number; outMs?: number }
   | { type: "replaceSceneMedia"; sceneId: string; mediaId: string }
   | { type: "setLock"; sceneId: string; lock: LockKey; value: boolean }
-  | { type: "renameProject"; name: string };
+  | { type: "renameProject"; name: string }
+  | { type: "setIdea"; idea: string };
 
 export interface ApplyResult {
   project: Project;
@@ -151,6 +152,12 @@ export function applyOp(project: Project, op: Op, actor: Actor = "user"): ApplyR
       const name = op.name.slice(0, 120);
       if (name === project.name) return refuse(project, "no change");
       return done({ ...project, name });
+    }
+
+    case "setIdea": {
+      const idea = op.idea.slice(0, 2000);
+      if (idea === project.brief.idea) return refuse(project, "no change");
+      return done({ ...project, brief: { ...project.brief, idea } });
     }
   }
 }

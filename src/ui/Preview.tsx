@@ -44,15 +44,12 @@ export function Preview() {
   const toggle = () => (playing ? player?.pause() : player?.play());
 
   return (
-    <section className="preview card">
-      <div className="section-head">
-        <h2>Preview · 9:16</h2>
-      </div>
+    <section className="preview">
       <div className="phone">
         <canvas ref={canvas} width={W} height={H} />
       </div>
       <div className="controls">
-        <button className="btn" onClick={toggle} disabled={totalMs === 0}>
+        <button className="play" onClick={toggle} disabled={totalMs === 0}>
           {playing ? "⏸ Pause" : "▶ Play"}
         </button>
         <input
@@ -63,6 +60,7 @@ export function Preview() {
           value={Math.min(playheadMs, totalMs)}
           disabled={totalMs === 0}
           onChange={(e) => player?.seek(Number(e.target.value))}
+          aria-label="Playhead"
         />
         <span className="time">
           {fmtTime(playheadMs)} / {fmtTime(totalMs)}

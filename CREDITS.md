@@ -15,8 +15,8 @@ Rule: nothing is added to Introcut without its license listed here, in the same 
 ## Design
 | Name | Purpose | License / source |
 |---|---|---|
-| `src/theme.css` ("soft neo-brutalism" tokens and base components) | Look of the whole UI | Copied unchanged from the owner's own SelfGlance project (`docs/design/selfglance-theme.css`). Same author; SelfGlance's own license is not recorded here, so settle it before Introcut is released. |
-| Fonts | Text | **None bundled.** The theme asks for Segoe UI Variable (Windows) and falls back to the system UI font (`system-ui`) on macOS, Linux and Android, so nothing needs a license. If we later bundle Inter (SIL OFL 1.1) for a uniform look, it is added here in the same change. |
+| `src/theme.css` ("Editorial" look: tokens and base controls) | Look of the whole UI | Written for Introcut (MIT, same as the repo). Icons in `src/ui/Icon.tsx` are simple paths drawn for Introcut. |
+| Fonts | Text | **None bundled.** Sans: Segoe UI Variable on Windows, otherwise the system UI font. Serif headings: Iowan Old Style (macOS/iOS), Palatino Linotype (Windows), Georgia as fallback; all are fonts already on the user's device, so nothing needs a license. If we later bundle a font (for example Inter, SIL OFL 1.1) for a uniform look, it is added here in the same change. |
 
 (Transitive dependencies come from `package-lock.json`; run a license audit in Milestone 13.)
 

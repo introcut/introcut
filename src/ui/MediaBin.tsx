@@ -8,8 +8,7 @@ export function MediaBin() {
   const scenes = useStore((s) => s.project.scenes);
   const assets = useStore((s) => s.assets);
   const busy = useStore((s) => s.busy);
-  const errors = useStore((s) => s.errors);
-  const { addFiles, addSceneFromMedia, addAllToTimeline, loadDemo, dismissErrors, dispatch } = useStore.getState();
+  const { addFiles, addSceneFromMedia, addAllToTimeline, loadDemo, dispatch } = useStore.getState();
   const [over, setOver] = useState(false);
   const input = useRef<HTMLInputElement>(null);
 
@@ -50,23 +49,15 @@ export function MediaBin() {
 
       <div className="panel">
         <div className="row between">
-          <h3>Media bin ({media.length})</h3>
+          <h3>Your files ({media.length})</h3>
           <div className="row">
-            <button onClick={() => void loadDemo()}>Load demo</button>
-            <button onClick={addAllToTimeline} disabled={media.length === 0}>
+            <button className="sm" onClick={() => void loadDemo()}>Load demo</button>
+            <button className="sm" onClick={addAllToTimeline} disabled={media.length === 0}>
               Add all
             </button>
           </div>
         </div>
         {busy > 0 && <p className="muted">Reading {busy} file{busy > 1 ? "s" : ""}…</p>}
-        {errors.length > 0 && (
-          <div className="error">
-            {errors.map((e, i) => (
-              <div key={i}>{e}</div>
-            ))}
-            <button onClick={dismissErrors}>Dismiss</button>
-          </div>
-        )}
         {media.length === 0 && busy === 0 && <p className="muted">Nothing yet. Drop files, record, or load the demo.</p>}
         <ul className="items">
           {media.map((m) => {
@@ -114,13 +105,14 @@ export function MediaBin() {
                 </div>
                 <div className="col">
                   <button
+                    className="sm"
                     disabled={m.kind === "audio" || missing}
                     onClick={() => addSceneFromMedia(m.id)}
                     title={m.kind === "audio" ? "Audio tracks are used from Milestone 6" : ""}
                   >
                     {used ? "+ Again" : "+ Add"}
                   </button>
-                  <button className="quiet" title="Remove from the project (undo brings it back)" onClick={() => dispatch({ type: "removeMedia", mediaId: m.id })}>
+                  <button className="text sm" title="Remove from the project (undo brings it back)" onClick={() => dispatch({ type: "removeMedia", mediaId: m.id })}>
                     Remove
                   </button>
                 </div>

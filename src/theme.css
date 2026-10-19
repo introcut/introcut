@@ -1,147 +1,67 @@
-/* SelfGlance look: "soft neo-brutalism". Portable and self-contained: copy this one file into
-   another app. Source of truth: app/src/dashboard/neo.css (+ design.css, dashboard.css).
-
-   Idea: warm paper, charcoal outlines on everything that is a box, hard offset shadows (no blur),
-   and ONE yellow "highlighter" that marks what is selected or active. Pastel tints for tiles.
-   Class names here are generic; rename to fit the app. Light is the default; dark follows the OS
-   unless <html data-theme="light|dark"> forces one. */
-
+/* Introcut look ("Editorial"): light and quiet, serif for questions and script lines, one orange accent.
+   Tokens live here; change them to re-skin the app. The preview stage stays dark so footage colours read true. */
 :root {
   color-scheme: light;
-  --page: #f3ebd9;      /* app background (with a dot grid, see body) */
-  --surface: #fffaf0;   /* cards */
-  --surface-2: #f8efdc; /* inset areas inside a card */
-  --side: #ebe1ca;      /* sidebar */
-  --ink: #221f1b;       /* text */
-  --ink-2: #4a443a;     /* secondary text, labels */
-  --muted: #6f6656;
-  --grid: #e1d6bd;
-  --axis: #bfb394;
-  --bd: #221f1b;        /* outline of every card, button, active nav item */
-  --border: rgba(34, 31, 27, 0.26); /* quiet outline for secondary things */
-  --hover: rgba(34, 31, 27, 0.07);
-  --good: #17692f;
+  --bg: #f6f5f2;       /* page */
+  --card: #ffffff;     /* sheets, cards, inputs */
+  --ink: #17171a;      /* text */
+  --mute: #6b6b73;     /* secondary text */
+  --faint: #a3a3aa;
+  --line: #e6e4de;     /* quiet outlines */
+  --chip: #efede8;     /* pill and track backgrounds */
+  --accent: #f2542d;   /* the single primary action and the "next" marker */
+  --accent-ink: #ffffff;
+  --accent-soft: #fde6df;
+  --ok: #1f8a4c;       --ok-soft: #e3f3ea;
+  --warn: #b26a00;     --warn-soft: #fbefd9;
   --bad: #b3261e;
-  --accent: #2c58c9;    /* primary button, links */
-  --pop: #f4c63d;       /* the highlighter: selected nav item, active chip, marks */
-  --pop-ink: #221f1b;
-  --btn-ink: #ffffff;   /* text on --accent */
+  --stage: #1a1a1e;    /* dark preview stage */
+  --stage-2: #2a2a30;
 
-  /* soft tints for tiles */
-  --tone-blue: #d3e1ff;
-  --tone-orange: #ffdcc4;
-  --tone-green: #cfeedc;
-  --tone-yellow: #fbe9a8;
-  --tone-pink: #f9d6e3;
+  --r: 16px;           /* cards */
+  --r-s: 12px;         /* inputs */
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
 
-  /* category colors: they carry meaning, keep them the same everywhere */
-  --cat-working: #2a78d6;
-  --cat-entertainment: #eb6834;
-  --cat-learning: #1baf7a;
-  --cat-browsing: #eda100;
-  --cat-meetings: #e87ba4;
-
-  /* kind badges */
-  --k-app: #e4dbff;
-  --k-site: #c9edf0;
-  --k-video: #ffd6bb;
-  --k-project: #cddcff;
-
-  --shadow-c: #221f1b;
-  --bw: 2px;            /* outline width */
-  --r-s: 8px;
-  --r-m: 12px;          /* cards */
-  --r-l: 14px;
-  --shadow-1: 3px 3px 0 var(--shadow-c); /* resting */
-  --shadow-2: 5px 5px 0 var(--shadow-c); /* raised */
-  --shadow-press: 1px 1px 0 var(--shadow-c);
-  --ring: 0 0 0 3px var(--page), 0 0 0 6px var(--accent); /* keyboard focus */
-
-  --font: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Ubuntu", sans-serif;
-  --font-display: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  --sans: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Ubuntu", sans-serif;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:where(:not([data-theme="light"])) {
-    color-scheme: dark;
-    --page: #161411; --surface: #211e19; --surface-2: #2a261f; --side: #0f0d0b;
-    --ink: #f4eee1; --ink-2: #cdc4b2; --muted: #a39a87; --grid: #38332a; --axis: #51493b;
-    --bd: rgba(244, 238, 225, 0.82); --border: rgba(244, 238, 225, 0.2); --hover: rgba(244, 238, 225, 0.08);
-    --good: #66d48f; --bad: #ff8f86; --accent: #7ba3ff; --pop: #eab935; --pop-ink: #1a1712; --btn-ink: #0d1220;
-    --tone-blue: #1f2b47; --tone-orange: #3a2718; --tone-green: #1b3326; --tone-yellow: #3a3216; --tone-pink: #3a2230;
-    --cat-working: #3987e5; --cat-entertainment: #d95926; --cat-learning: #199e70; --cat-browsing: #c98500; --cat-meetings: #d55181;
-    --k-app: #3a2f5c; --k-site: #1d4549; --k-video: #5a3320; --k-project: #20335c;
-    --shadow-c: #000000;
-  }
-}
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --page: #161411; --surface: #211e19; --surface-2: #2a261f; --side: #0f0d0b;
-  --ink: #f4eee1; --ink-2: #cdc4b2; --muted: #a39a87; --grid: #38332a; --axis: #51493b;
-  --bd: rgba(244, 238, 225, 0.82); --border: rgba(244, 238, 225, 0.2); --hover: rgba(244, 238, 225, 0.08);
-  --good: #66d48f; --bad: #ff8f86; --accent: #7ba3ff; --pop: #eab935; --pop-ink: #1a1712; --btn-ink: #0d1220;
-  --tone-blue: #1f2b47; --tone-orange: #3a2718; --tone-green: #1b3326; --tone-yellow: #3a3216; --tone-pink: #3a2230;
-  --cat-working: #3987e5; --cat-entertainment: #d95926; --cat-learning: #199e70; --cat-browsing: #c98500; --cat-meetings: #d55181;
-  --k-app: #3a2f5c; --k-site: #1d4549; --k-video: #5a3320; --k-project: #20335c;
-  --shadow-c: #000000;
-}
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); -webkit-font-smoothing: antialiased; }
+h1, h2, h3, p { margin: 0; }
+.serif { font-family: var(--serif); }
+.mute { color: var(--mute); }
+.sp { flex: 1; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
-/* --- Page: paper with a faint dot grid ---------------------------------------------- */
-html, body {
-  margin: 0;
-  font-family: var(--font);
-  -webkit-font-smoothing: antialiased;
-  background-color: var(--page);
-  background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--ink) 12%, transparent) 1px, transparent 0);
-  background-size: 22px 22px;
-  color: var(--ink);
-}
-main { max-width: 1180px; display: grid; gap: 28px; }
+/* --- Buttons: pills. Any plain <button> gets the quiet default; add a class to change it. */
+:where(button) { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; font-weight: 600; cursor: pointer; }
+:where(button:hover:not(:disabled)) { border-color: var(--faint); }
+:where(button:disabled) { opacity: 0.45; cursor: not-allowed; }
+.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+.go { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.go:hover:not(:disabled), .primary:hover:not(:disabled) { filter: brightness(1.08); border-color: transparent; }
+.sm { padding: 5px 12px; font-size: 13px; }
+.text { background: none; border-color: transparent; color: var(--mute); padding: 6px 10px; }
+.text:hover:not(:disabled) { color: var(--ink); border-color: transparent; }
+.danger { color: var(--bad); }
+.icon-btn { display: inline-grid; place-items: center; width: 34px; height: 34px; padding: 0; border-color: transparent; background: none; }
 
-.page-head { display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 16px; border-bottom: var(--bw) solid var(--bd); }
-.page-head h1 { margin: 0; font: 800 38px/1.05 var(--font-display); letter-spacing: -0.035em; }
-.page-head p { margin: 6px 0 0; font-size: 14px; color: var(--ink-2); }
+/* --- Pills (status labels) */
+.pill { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 10px; font-size: 12.5px; font-weight: 600; background: var(--chip); color: var(--mute); white-space: nowrap; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.pill.now { background: var(--accent-soft); color: var(--accent); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: inline-block; flex: none; }
 
-/* --- Sidebar: grouped, the active item is highlighted yellow ------------------------ */
-.side { background: var(--side); border-right: var(--bw) solid var(--bd); }
-.brand { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; }
-.logo { width: 28px; height: 28px; border-radius: 8px; border: var(--bw) solid var(--bd); box-shadow: 2px 2px 0 var(--shadow-c); }
-.nav-label { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); }
-nav button { padding: 8px 10px; border: var(--bw) solid transparent; border-radius: 10px; background: none; font: 650 14px var(--font); color: var(--ink); }
-nav button:hover:not(.on) { background: var(--hover); }
-nav button.on { background: var(--pop); color: var(--pop-ink); border-color: var(--bd); box-shadow: 2px 2px 0 var(--shadow-c); font-weight: 800; }
+/* --- Inputs */
+input, textarea, select { background: var(--card); color: var(--ink); border: 1px solid var(--line); border-radius: var(--r-s); padding: 10px 14px; font: inherit; max-width: 100%; }
+input[type="range"] { padding: 0; accent-color: var(--accent); }
+input[type="checkbox"] { accent-color: var(--accent); }
+:where(button, input, textarea, select, summary, [tabindex]):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* --- Cards: everything that is a box ------------------------------------------------ */
-.card, .tile, .section {
-  background: var(--surface);
-  border: var(--bw) solid var(--bd);
-  border-radius: var(--r-m);
-  box-shadow: var(--shadow-1);
-  color: var(--ink);
-  padding: 18px 20px;
-  min-width: 0;
-}
-.tile { display: flex; flex-direction: column; gap: 10px; }
-.tone-blue { background: var(--tone-blue); } .tone-orange { background: var(--tone-orange); }
-.tone-green { background: var(--tone-green); } .tone-yellow { background: var(--tone-yellow); } .tone-pink { background: var(--tone-pink); }
-.tile-label, .section-head h2 { margin: 0; font-size: 11.5px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); }
-.tile-num { font-size: 38px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
-
-/* 12-column "bento" grid: tiles span 3-8 columns */
-.bento { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 22px; align-items: stretch; }
-
-/* --- Buttons: they physically press ------------------------------------------------- */
-.btn { padding: 8px 16px; border: var(--bw) solid var(--bd); border-radius: 10px; background: var(--accent); color: var(--btn-ink); font: 750 14px var(--font); box-shadow: 2px 2px 0 var(--shadow-c); transition: transform 90ms, box-shadow 90ms; cursor: pointer; }
-.btn:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--shadow-c); }
-.btn:active:not(:disabled) { transform: translate(1px, 1px); box-shadow: var(--shadow-press); }
-.btn:disabled { opacity: 0.45; box-shadow: none; }
-.btn.ghost { background: var(--surface); color: var(--ink); }
-
-/* --- Chips, badges ------------------------------------------------------------------ */
-.chip { border: 1.5px solid var(--bd); border-radius: 999px; padding: 2px 10px; background: var(--surface); color: var(--ink); font-weight: 650; }
-.chip:hover, .chip.on { background: var(--pop); color: var(--pop-ink); }
-.kind { padding: 1px 8px; border: 1.5px solid var(--bd); border-radius: 999px; font-size: 11px; font-weight: 800; color: var(--ink); }
-.kind-app { background: var(--k-app); } .kind-site { background: var(--k-site); } .kind-video { background: var(--k-video); } .kind-project { background: var(--k-project); }
-
-/* --- Keyboard focus ----------------------------------------------------------------- */
-:where(button, [role="tab"], input, textarea, select, a):focus-visible { outline: none; box-shadow: var(--ring); border-radius: var(--r-s); }
+/* --- Logo: a small clapperboard */
+.logo { display: inline-flex; align-items: center; gap: 9px; font-weight: 700; font-size: 17px; letter-spacing: -0.02em; }
+.slate { width: 22px; height: 22px; border-radius: 5px; background: var(--ink); position: relative; overflow: hidden; flex: none; }
+.slate::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 8px; background: linear-gradient(115deg, #fff 0 25%, var(--ink) 25% 50%, #fff 50% 75%, var(--ink) 75%); }
