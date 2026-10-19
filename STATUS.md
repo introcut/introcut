@@ -7,6 +7,12 @@ Planning is done. **Milestones 1 (editor shell) and 2 (project core) are built.*
 
 Run it: `npm install` then `npm run dev` and open http://localhost:5173 (Chrome or Edge). Unit tests: `npm test`.
 
+**UI restyle (in progress, step 1 of 2, awaiting the owner's approval of the look)**
+- `src/theme.css` is the SelfGlance "soft neo-brutalism" theme, copied unchanged and imported once in `main.tsx`; `src/styles.css` holds only Introcut layout and pieces built from its tokens. Light/dark follow the OS; the sidebar toggle (`ui/ThemeToggle.tsx`, `ui/theme.ts`) forces one and remembers it in `localStorage` (optional, never required).
+- Done: app shell (sidebar with brand, grouped nav, media bin, theme toggle and save card; page header with the toolbar), the preview card, timeline as a card with the selected scene in yellow, interim card look for the other panels, buttons/inputs/chips on tokens. No behaviour or data changed (29 unit tests, M1 17/17 and M2 40/40 browser checks pass; the M2 check now ignores the heading's upper-casing).
+- Step 2 (after approval): restyle media items, inspector, recorder and JSON panel as proper cards/tiles/chips; bento tiles for scene facts.
+- Known: "Brief / Direction / Analyze" in the sidebar are disabled placeholders for later milestones. Narrow screens (<900 px) just stack the sidebar above the page; a real mobile layout is not designed yet. Canvas frame colors (black letterbox, demo cards) are video content, not UI.
+
 **Milestone 2 notes for the next person**
 - **The contract:** `src/model/schema.ts` is the full v2 project schema (Zod, every field has a default). `src/model/ops.ts` is the ONLY way to change a project: `applyOp(project, op, actor)` with `actor` = `"user"` or `"ai"`. Never mutate a project directly. Add new ops there (and tests).
 - **Locks:** a user trim/move sets a lock on that scene; an `"ai"` op on a locked field is refused (`reason` says why). Only the user can change locks. The store's `dispatch(op, { actor, coalesce })` records undo steps; `coalesce` merges rapid edits (slider drags) into one step. `dispatchMany` = one undo step for several ops.

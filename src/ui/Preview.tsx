@@ -44,12 +44,15 @@ export function Preview() {
   const toggle = () => (playing ? player?.pause() : player?.play());
 
   return (
-    <section className="preview">
+    <section className="preview card">
+      <div className="section-head">
+        <h2>Preview · 9:16</h2>
+      </div>
       <div className="phone">
         <canvas ref={canvas} width={W} height={H} />
       </div>
       <div className="controls">
-        <button onClick={toggle} disabled={totalMs === 0}>
+        <button className="btn" onClick={toggle} disabled={totalMs === 0}>
           {playing ? "⏸ Pause" : "▶ Play"}
         </button>
         <input

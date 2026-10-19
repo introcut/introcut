@@ -20,7 +20,7 @@ export function MediaBin() {
   };
 
   return (
-    <aside className="bin">
+    <div className="bin">
       <div
         className={`drop ${over ? "over" : ""}`}
         onDragOver={(e) => {
@@ -120,7 +120,7 @@ export function MediaBin() {
                   >
                     {used ? "+ Again" : "+ Add"}
                   </button>
-                  <button className="ghost" title="Remove from the project (undo brings it back)" onClick={() => dispatch({ type: "removeMedia", mediaId: m.id })}>
+                  <button className="quiet" title="Remove from the project (undo brings it back)" onClick={() => dispatch({ type: "removeMedia", mediaId: m.id })}>
                     Remove
                   </button>
                 </div>
@@ -142,6 +142,6 @@ export function MediaBin() {
           This is an average level, not the broadcast LUFS measure we add later.
         </p>
       </details>
-    </aside>
+    </div>
   );
 }
