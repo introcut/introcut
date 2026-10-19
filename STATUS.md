@@ -7,7 +7,9 @@ Planning is done. **Milestones 1 (editor shell) and 2 (project core) are built.*
 
 Run it: `npm install` then `npm run dev` and open http://localhost:5173 (Chrome or Edge). Unit tests: `npm test`.
 
-**UI restyle (in progress, step 1 of 2, awaiting the owner's approval of the look)**
+**UI direction: a new stage-based design is proposed in `docs/UX.md` (mock: `docs/ux/prototype.html`) and awaits approval. The SelfGlance restyle below is superseded by it; do not build more on it.**
+
+**(Superseded) UI restyle, step 1**
 - `src/theme.css` is the SelfGlance "soft neo-brutalism" theme, copied unchanged and imported once in `main.tsx`; `src/styles.css` holds only Introcut layout and pieces built from its tokens. Light/dark follow the OS; the sidebar toggle (`ui/ThemeToggle.tsx`, `ui/theme.ts`) forces one and remembers it in `localStorage` (optional, never required).
 - Done: app shell (sidebar with brand, grouped nav, media bin, theme toggle and save card; page header with the toolbar), the preview card, timeline as a card with the selected scene in yellow, interim card look for the other panels, buttons/inputs/chips on tokens. No behaviour or data changed (29 unit tests, M1 17/17 and M2 40/40 browser checks pass; the M2 check now ignores the heading's upper-casing).
 - Step 2 (after approval): restyle media items, inspector, recorder and JSON panel as proper cards/tiles/chips; bento tiles for scene facts.

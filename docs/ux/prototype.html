@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Introcut — UX prototype (mock data, not the real app)</title>
+<style>
+:root{
+  --bg:#0d0e11; --panel:#14161a; --panel2:#1b1e24; --line:#272b33; --text:#eceef2; --mute:#9097a5;
+  --cut:#c6f135; --cut-ink:#12150a; --ok:#5fd38d; --warn:#f2b84b; --bad:#ff7a7a; --blue:#7aa7ff;
+  --r:12px; --font:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif;
+}
+:root[data-theme="light"]{
+  --bg:#f3f3ef; --panel:#ffffff; --panel2:#ecece6; --line:#d9d9d0; --text:#17181b; --mute:#5f6572;
+  --ok:#1c7a43; --warn:#9a6700; --bad:#b3261e; --blue:#2c58c9;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--text);font:14px/1.45 var(--font)}
+button{font:inherit;color:inherit;cursor:pointer}
+h1,h2,h3,p{margin:0}
+.mute{color:var(--mute)}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:7px 14px;font-weight:600}
+.btn:hover{border-color:var(--mute)}
+.btn.primary{background:var(--cut);color:var(--cut-ink);border-color:var(--cut)}
+.btn.primary:hover{filter:brightness(1.06)}
+.btn.sm{padding:4px 10px;font-size:12.5px}
+.btn.ghost{background:transparent}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600;background:var(--panel2)}
+.chip.on{border-color:var(--cut);color:var(--cut)}
+:root[data-theme="light"] .chip.on{color:var(--text);background:var(--cut);border-color:var(--cut)}
+.chip.ok{color:var(--ok)} .chip.warn{color:var(--warn)} .chip.bad{color:var(--bad)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mute)}
+input,textarea{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font:inherit;width:100%}
+input[type=range]{width:auto;flex:1;padding:0;accent-color:var(--cut)}
+input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--cut);outline-offset:2px}
+.logo{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:17px;letter-spacing:-.02em}
+.mark{width:22px;height:22px;border-radius:6px;background:var(--panel2);border:1px solid var(--line);position:relative}
+.mark::after{content:"";position:absolute;left:50%;top:-4px;bottom:-4px;width:3px;margin-left:-1.5px;background:var(--cut);border-radius:2px}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--cut);color:var(--cut-ink);display:grid;place-items:center;font-weight:800;font-size:13px}
+
+/* screens */
+.screen{display:none;height:100%}
+.screen.on{display:block}
+.note{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:50;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:5px 14px;font-size:12px;color:var(--mute);display:flex;gap:12px;align-items:center}
+.note a{color:var(--text);font-weight:600;cursor:pointer;text-decoration:underline}
+
+/* landing */
+.landing{overflow:auto}
+.nav{display:flex;align-items:center;justify-content:space-between;padding:18px 40px}
+.hero{max-width:880px;margin:70px auto 40px;padding:0 24px;text-align:center}
+.hero h1{font-size:56px;line-height:1.02;letter-spacing:-.04em;font-weight:800}
+.hero h1 em{white-space:nowrap;font-style:normal;background:var(--cut);color:var(--cut-ink);padding:0 .15em;border-radius:8px}
+.hero p{margin:18px auto 28px;max-width:600px;font-size:18px;color:var(--mute)}
+.hero .cta{display:flex;gap:12px;justify-content:center}
+.hero .cta .btn{padding:12px 22px;font-size:15px}
+.flow{max-width:1000px;margin:56px auto;padding:0 24px;display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.flow div{border-top:3px solid var(--line);padding-top:10px;font-size:13px}
+.flow div:first-child,.flow div.hl{border-color:var(--cut)}
+.flow b{display:block;font-size:14px}
+.trust{max-width:760px;margin:0 auto 80px;padding:0 24px;text-align:center;color:var(--mute);font-size:13px}
+
+/* welcome */
+.center{height:100%;display:grid;place-items:center;padding:24px;overflow:auto}
+.welcome{width:min(520px,100%);display:grid;gap:16px}
+.welcome h2{font-size:26px;letter-spacing:-.03em}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.google{width:100%;display:flex;justify-content:center;gap:10px;background:var(--panel2)}
+.divider{display:flex;align-items:center;gap:12px;color:var(--mute);font-size:12px}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+
+/* home */
+.home{display:grid;grid-template-rows:auto 1fr;height:100%}
+.topbar{display:flex;align-items:center;gap:14px;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
+.topbar .sp{flex:1}
+.home main{overflow:auto;padding:36px 40px;max-width:1100px;width:100%;margin:0 auto}
+.idea-box{display:grid;gap:12px;padding:22px}
+.idea-box textarea{min-height:92px;font-size:16px;resize:none}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-top:14px}
+.proj{cursor:pointer;padding:0;overflow:hidden}
+.proj:hover{border-color:var(--mute)}
+.proj .thumb{aspect-ratio:9/12;background:var(--panel2);display:grid;place-items:center;color:var(--mute);font-size:13px}
+.proj .meta{padding:12px 14px}
+
+/* workspace */
+.ws{--rail:236px;--co:330px;height:100%;display:grid;grid-template-rows:auto 1fr;grid-template-columns:var(--rail) minmax(0,1fr) var(--co);grid-template-areas:"top top top" "rail main co";transition:grid-template-columns .15s}
+.ws.rail-c{--rail:64px}
+.ws.co-c{--co:0px}
+.ws .topbar{grid-area:top}
+.crumb{display:flex;align-items:center;gap:8px;font-weight:700}
+.stepper{display:flex;gap:4px;flex:1;max-width:560px;margin:0 auto}
+.stepper button{flex:1;background:var(--panel2);border:0;border-top:3px solid var(--line);border-radius:4px;padding:5px 6px 4px;font-size:12px;color:var(--mute);text-align:left}
+.stepper button.done{border-color:var(--ok);color:var(--text)}
+.stepper button.cur{border-color:var(--cut);color:var(--text);font-weight:700}
+.rail{grid-area:rail;background:var(--panel);border-right:1px solid var(--line);padding:12px 10px;display:flex;flex-direction:column;gap:4px;overflow:hidden}
+.rail .item{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:10px;border:0;background:none;text-align:left;white-space:nowrap;width:100%}
+.rail .item:hover{background:var(--panel2)}
+.rail .item.cur{background:var(--panel2);box-shadow:inset 3px 0 0 var(--cut)}
+.rail .ico{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;flex:none;font-size:12px;font-weight:800;background:var(--bg);border:1px solid var(--line)}
+.rail .item.done .ico{background:var(--ok);color:var(--cut-ink);border-color:var(--ok)}
+.rail .item.cur .ico{background:var(--cut);color:var(--cut-ink);border-color:var(--cut)}
+.rail .txt small{display:block;color:var(--mute);font-size:11.5px}
+.rail .grow{flex:1}
+.ws.rail-c .txt,.ws.rail-c .rail .label{display:none}
+.ws.rail-c .rail .item{justify-content:center;padding:9px 0}
+.rail .label{padding:10px 10px 4px}
+.main{grid-area:main;overflow:auto;padding:26px 32px;display:flex;flex-direction:column;gap:20px;min-width:0}
+.co{grid-area:co;background:var(--panel);border-left:1px solid var(--line);overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.ws.co-c .co{border-left:0}
+.co .head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;font-weight:700}
+.co .msgs{flex:1;overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:12px}
+.msg{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:11px 13px;font-size:13.5px}
+.msg .row{margin-top:9px}
+.co form{padding:12px 16px;border-top:1px solid var(--line)}
+.stage{display:none;flex-direction:column;gap:20px}
+.stage.on{display:flex}
+.stage h2{font-size:28px;letter-spacing:-.03em}
+.stage .sub{color:var(--mute);margin-top:4px}
+.footnav{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:8px}
+
+/* readiness */
+.score{display:grid;grid-template-columns:150px 1fr;gap:22px;align-items:center}
+.big{font-size:64px;font-weight:800;letter-spacing:-.04em;line-height:1}
+.bars{display:grid;gap:10px}
+.bar{display:grid;grid-template-columns:130px 1fr 34px;gap:12px;align-items:center;font-size:13px}
+.bar i{height:8px;border-radius:5px;background:var(--panel2);position:relative;overflow:hidden}
+.bar i b{position:absolute;inset:0 auto 0 0;background:var(--cut);border-radius:5px}
+.bar i b.mid{background:var(--warn)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* shots / clips */
+.shot{display:grid;grid-template-columns:auto 1fr 220px;gap:16px;align-items:start}
+.num{width:30px;height:30px;border-radius:8px;background:var(--panel2);display:grid;place-items:center;font-weight:800}
+.prompt{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--mute);margin-top:8px}
+.drop{border:2px dashed var(--line);border-radius:12px;aspect-ratio:9/11;display:grid;place-items:center;text-align:center;color:var(--mute);font-size:12.5px;padding:10px}
+.clip{aspect-ratio:9/11;border-radius:12px;background:var(--panel2);border:1px solid var(--line);display:grid;place-items:center;color:var(--mute);font-size:12px}
+.diag{display:grid;gap:6px;margin-top:10px}
+
+/* editor */
+.editor{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start}
+.phone{height:min(52vh,470px);aspect-ratio:9/16;border-radius:26px;border:2px solid var(--line);background:var(--panel2);display:grid;place-items:center;font-weight:800;font-size:26px;letter-spacing:-.03em;text-align:center;padding:20px;position:relative;overflow:hidden}
+.phone .cap{position:absolute;left:12px;right:12px;bottom:60px;text-align:center;font-size:18px}
+.phone .cap b{background:var(--cut);color:var(--cut-ink);padding:0 6px;border-radius:5px}
+.inspector{display:grid;gap:14px}
+.tl{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;position:relative}
+.ruler{display:flex;justify-content:space-between;font-size:11px;color:var(--mute);margin-bottom:6px}
+.tracks{display:grid;gap:5px;position:relative}
+.track{display:flex;gap:3px;height:34px}
+.blk{border-radius:7px;background:var(--panel2);border:1px solid var(--line);font-size:11.5px;padding:7px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.blk.sel{border-color:var(--cut);box-shadow:0 0 0 1px var(--cut)}
+.blk.gap{background:repeating-linear-gradient(45deg,transparent 0 6px,var(--line) 6px 8px);color:var(--warn);border-style:dashed;border-color:var(--warn)}
+.blk.audio{background:var(--panel2);color:var(--mute)}
+.blk.music{opacity:.8}
+.tname{font-size:10.5px;color:var(--mute);width:48px;flex:none;align-self:center}
+.trow{display:flex;gap:8px}
+.trow .track{flex:1}
+.playhead{position:absolute;top:22px;bottom:12px;left:calc(14px + 56px + 38%);width:2px;background:var(--cut)}
+.playhead::before{content:"";position:absolute;top:-6px;left:-5px;width:12px;height:12px;background:var(--cut);border-radius:3px}
+
+@media (max-width:1100px){.ws{--co:0px}.ws .topbar .stepper{display:none}.shot{grid-template-columns:auto 1fr}.shot .drop,.shot .clip{display:none}.editor{grid-template-columns:1fr}.flow{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:38px}}
+</style>
+</head>
+<body>
+
+<!-- ============ 1. LANDING ============ -->
+<section class="screen landing" id="landing">
+  <div class="nav">
+    <span class="logo"><span class="mark"></span>Introcut</span>
+    <div class="row">
+      <a class="mute" href="#landing">How it works</a>
+      <button class="btn" data-go="welcome">Sign in</button>
+      <button class="btn primary" data-go="welcome">Open Introcut</button>
+    </div>
+  </div>
+  <div class="hero">
+    <h1>Bring an idea. Leave with a <em>30-second</em> short.</h1>
+    <p>Introcut is your producer, director and editor. It writes the plan, tells you what to generate in the free tools, then fixes and finishes the clips you bring back.</p>
+    <div class="cta">
+      <button class="btn primary" data-go="welcome">Start free</button>
+      <button class="btn" data-go="home">See an example project</button>
+    </div>
+  </div>
+  <div class="flow">
+    <div class="hl"><b>1 Idea</b><span class="mute">Is it strong enough?</span></div>
+    <div><b>2 Script</b><span class="mute">Format + words</span></div>
+    <div><b>3 Shots</b><span class="mute">Prompts to paste</span></div>
+    <div><b>4 Clips</b><span class="mute">We check what you got</span></div>
+    <div><b>5 Edit</b><span class="mute">Fix gaps, keep your edits</span></div>
+    <div><b>6 Finish</b><span class="mute">Sound, captions, MP4</span></div>
+  </div>
+  <p class="trust">Free and open source. Your videos never leave your device. No watermark from us.</p>
+</section>
+
+<!-- ============ 2. WELCOME / PROFILE ============ -->
+<section class="screen" id="welcome">
+  <div class="center">
+    <div class="card welcome">
+      <span class="logo"><span class="mark"></span>Introcut</span>
+      <div><h2>Let's set you up</h2><p class="mute" style="margin-top:6px">Three quick things so Introcut can pick sensible defaults. You can change them any time.</p></div>
+      <div><div class="label" style="margin-bottom:6px">What should we call you?</div><input value="Bashanta"></div>
+      <div><div class="label" style="margin-bottom:6px">Languages you make videos in</div>
+        <div class="row"><span class="chip on">English</span><span class="chip on">नेपाली</span><span class="chip">हिन्दी</span></div></div>
+      <div><div class="label" style="margin-bottom:6px">Where will you post?</div>
+        <div class="row"><span class="chip on">YouTube Shorts</span><span class="chip on">Instagram Reels</span><span class="chip">TikTok</span></div></div>
+      <button class="btn primary" data-go="home" style="padding:11px">Create my profile on this device</button>
+      <div class="divider">optional</div>
+      <button class="btn google" data-go="home"><b>G</b> Continue with Google to back up projects to my own Drive</button>
+      <p class="mute" style="font-size:12px">Without Google, everything stays in this browser. With it, only a small project file is saved to a private folder in <i>your</i> Drive. Videos are never uploaded.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3. HOME ============ -->
+<section class="screen" id="home">
+  <div class="home">
+    <div class="topbar">
+      <span class="logo"><span class="mark"></span>Introcut</span><span class="sp"></span>
+      <button class="btn sm ghost" id="theme">Light / dark</button>
+      <span class="avatar" title="Bashanta (profile on this device)">B</span>
+    </div>
+    <main>
+      <div class="card idea-box">
+        <div class="label">New short</div>
+        <textarea>A monkey in a garlic field argues with a farmer in Nepali about who owns the garlic…</textarea>
+        <div class="row"><span class="chip on">30 s · 9:16</span><span class="chip on">नेपाली</span><span class="chip">I have footage already</span><span style="flex:1"></span>
+          <button class="btn primary" data-go="idea">Check my idea →</button></div>
+      </div>
+      <div class="label" style="margin-top:34px">Your projects</div>
+      <div class="grid">
+        <div class="card proj" data-go="edit"><div class="thumb">garlic-monkey</div><div class="meta"><b>Garlic monkey</b><div class="mute" style="font-size:12px">Edit stage · 0:28 · today</div></div></div>
+        <div class="card proj" data-go="idea"><div class="thumb">app-demo</div><div class="meta"><b>App demo</b><div class="mute" style="font-size:12px">Idea stage · yesterday</div></div></div>
+        <div class="card proj" style="border-style:dashed;display:grid;place-items:center;aspect-ratio:9/13;color:var(--mute)">+ New short</div>
+      </div>
+    </main>
+  </div>
+</section>
+
+<!-- ============ 4. WORKSPACE ============ -->
+<section class="screen" id="ws-screen">
+  <div class="ws" id="ws">
+    <div class="topbar">
+      <button class="btn sm ghost" id="railBtn" title="Collapse or expand the side bar ( [ )">☰</button>
+      <div class="crumb"><span class="mute" style="cursor:pointer" data-go="home">Projects /</span> Garlic monkey</div>
+      <div class="stepper" id="stepper"></div>
+      <button class="btn sm ghost" title="Undo">↶</button><button class="btn sm ghost" title="Redo">↷</button>
+      <button class="btn sm" id="coBtn" title="Show or hide the assistant ( ] )">Assistant</button>
+      <span class="avatar">B</span>
+    </div>
+
+    <nav class="rail" id="rail"></nav>
+
+    <div class="main" id="main">
+
+      <!-- IDEA -->
+      <div class="stage" data-stage="idea">
+        <div><h2>Idea</h2><p class="sub">Introcut reads your idea and tells you honestly whether free tools can make it work.</p></div>
+        <div class="card">
+          <div class="score">
+            <div><div class="label">Readiness</div><div class="big">72</div><span class="chip warn" style="margin-top:8px">Almost there</span></div>
+            <div class="bars">
+              <div class="bar"><span>Hook in 2 s</span><i><b style="width:84%"></b></i><span>84</span></div>
+              <div class="bar"><span>Clarity</span><i><b style="width:78%"></b></i><span>78</span></div>
+              <div class="bar"><span>Feasible with free tools</span><i><b class="mid" style="width:58%"></b></i><span>58</span></div>
+              <div class="bar"><span>Novelty</span><i><b style="width:68%"></b></i><span>68</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="two">
+          <div class="card"><div class="label">Why it can work</div><p style="margin-top:8px">A talking animal with a very specific argument is instantly clear and shareable. The first line can be the punchline.</p></div>
+          <div class="card"><div class="label">What could go wrong</div><p style="margin-top:8px">Two characters talking in Nepali in one shot is hard for free generators. Introcut suggests alternating single-character shots.</p>
+            <div class="row" style="margin-top:10px"><button class="btn sm primary">Apply that</button><button class="btn sm">Keep mine</button></div></div>
+        </div>
+        <div class="card"><div class="label">Story format picked for you</div>
+          <div class="row" style="margin-top:8px"><b style="font-size:18px">"Argument escalates, twist ending"</b><span class="chip">5 beats</span><span class="chip">28–30 s</span><button class="btn sm" style="margin-left:auto">Why this one?</button></div></div>
+        <div class="footnav"><span class="mute">You can come back and change the idea; later stages are re-checked.</span><button class="btn primary" data-step="script">Write the script →</button></div>
+      </div>
+
+      <!-- SCRIPT -->
+      <div class="stage" data-stage="script">
+        <div><h2>Script</h2><p class="sub">Written in Nepali with English underneath. Click any line to change it; your lines are locked from the AI.</p></div>
+        <div class="card"><div class="label">1 · Hook · 0–4 s</div><p style="margin-top:6px;font-size:18px">"यो लसुन मेरो हो!"</p><p class="mute">This garlic is mine!</p></div>
+        <div class="card"><div class="label">2 · Farmer answers · 4–10 s</div><p style="margin-top:6px;font-size:18px">"हैन, मैले रोपेको हो।"</p><p class="mute">No, I planted it.</p></div>
+        <div class="card"><div class="label">3 · Escalation · 10–20 s</div><p style="margin-top:6px;font-size:18px">…</p></div>
+        <div class="footnav"><button class="btn" data-step="idea">← Idea</button><button class="btn primary" data-step="shots">Plan the shots →</button></div>
+      </div>
+
+      <!-- SHOTS -->
+      <div class="stage" data-stage="shots">
+        <div><h2>Shots</h2><p class="sub">For each shot: the best free tool, and a prompt ready to paste. Same style notes in every prompt so the clips match.</p></div>
+        <div class="card shot"><div class="num">1</div><div><b>Monkey, close-up, shouting</b> <span class="chip ok">Veo in Flow</span> <span class="chip">6 s</span>
+          <div class="prompt">Vertical 9:16, a monkey in a garlic field at golden hour, shouting in Nepali "यो लसुन मेरो हो!", handheld, warm light…</div>
+          <div class="row" style="margin-top:8px"><button class="btn sm">Copy prompt</button><button class="btn sm ghost">Open Flow ↗</button></div></div><div></div></div>
+        <div class="card shot"><div class="num">2</div><div><b>Farmer, medium shot, calm reply</b> <span class="chip">Kling</span> <span class="chip">5 s</span>
+          <div class="prompt">Vertical 9:16, an elderly Nepali farmer in the same garlic field, replies calmly…</div>
+          <div class="row" style="margin-top:8px"><button class="btn sm">Copy prompt</button></div></div><div></div></div>
+        <div class="footnav"><button class="btn" data-step="script">← Script</button><button class="btn primary" data-step="clips">I have my clips →</button></div>
+      </div>
+
+      <!-- CLIPS -->
+      <div class="stage" data-stage="clips">
+        <div><h2>Clips</h2><p class="sub">Drop what you generated. Introcut checks each clip against the shot it was meant for and says what to fix.</p></div>
+        <div class="card shot"><div class="num">1</div><div><b>Monkey, close-up, shouting</b> <span class="chip ok">Good fit</span>
+          <div class="diag"><span class="chip ok">✓ Speaks the line</span><span class="chip warn">⚠ 7.4 s, shot needs 6 s: trim the quiet end</span><span class="chip warn">Free-tier watermark present. Introcut does not remove it.</span></div>
+          <div class="row" style="margin-top:10px"><button class="btn sm primary">Trim for me</button><button class="btn sm">Leave as is</button></div></div><div class="clip">monkey.mp4</div></div>
+        <div class="card shot"><div class="num">2</div><div><b>Farmer, medium shot, calm reply</b> <span class="chip bad">Missing</span>
+          <p class="mute" style="margin-top:6px">Not received yet. Introcut can fill 2 s with a still and a callout, but the farmer's reply needs a real clip.</p></div><div class="drop">Drop the clip here<br>or click to choose</div></div>
+        <div class="footnav"><button class="btn" data-step="shots">← Shots</button><button class="btn primary" data-step="edit">Open the editor →</button></div>
+      </div>
+
+      <!-- EDIT -->
+      <div class="stage" data-stage="edit">
+        <div class="row"><h2>Edit</h2><span class="chip warn">1 gap found</span><span style="flex:1"></span><button class="btn sm">Redo this scene</button></div>
+        <div class="editor">
+          <div class="phone"><span>Scene 3<br><small class="mute" style="font-size:13px;font-weight:500">farmer</small></span><div class="cap">यो <b>लसुन</b> मेरो हो</div></div>
+          <div class="inspector">
+            <div class="card"><div class="label">Scene 3 · farmer · 5.0 s</div>
+              <div style="margin-top:10px;display:grid;gap:10px"><div class="row"><span style="width:60px" class="mute">Start</span><input type="range" style="padding:0"><b>0.4 s</b></div><div class="row"><span style="width:60px" class="mute">End</span><input type="range" style="padding:0"><b>5.4 s</b></div></div>
+              <div class="row" style="margin-top:12px"><span class="chip">🔒 trim</span><span class="chip">Locked: AI won't change it</span></div></div>
+            <div class="card"><div class="label">Introcut found a gap</div><p style="margin-top:6px">The farmer's line ends 1.2 s before the next cut. Freeze the last frame with a callout circle on the farmer?</p>
+              <div class="row" style="margin-top:10px"><button class="btn sm primary">Apply</button><button class="btn sm">Show other options</button></div></div>
+          </div>
+        </div>
+        <div class="tl"><div class="ruler"><span>0:00</span><span>0:07</span><span>0:14</span><span>0:21</span><span>0:28</span></div>
+          <div class="tracks">
+            <div class="trow"><span class="tname">Video</span><div class="track"><div class="blk" style="flex:6">1 monkey</div><div class="blk sel" style="flex:5">2 farmer</div><div class="blk gap" style="flex:1.2">gap</div><div class="blk" style="flex:7">3 argument</div><div class="blk" style="flex:5">4 twist</div></div></div>
+            <div class="trow"><span class="tname">Voice</span><div class="track"><div class="blk audio" style="flex:1">▂▃▅▂▆▃▂▅▃▂▃▅▆▂▃▂▅▃▂▆▃▂▃▅▂▃▂▅▆▃▂▃</div></div></div>
+            <div class="trow"><span class="tname">Music</span><div class="track"><div class="blk audio music" style="flex:1">♪ ducked under speech</div></div></div>
+          </div><div class="playhead"></div></div>
+        <div class="footnav"><button class="btn" data-step="clips">← Clips</button><button class="btn primary" data-step="finish">Sound, captions &amp; export →</button></div>
+      </div>
+
+      <!-- FINISH -->
+      <div class="stage" data-stage="finish">
+        <div><h2>Finish</h2><p class="sub">Captions, sound and the final check, then export.</p></div>
+        <div class="two"><div class="card"><div class="label">Captions</div><p style="margin-top:8px">Word-by-word, from your script. 28 words timed.</p></div><div class="card"><div class="label">Retention check</div><p style="margin-top:8px">Hook lands by 1.4 s. Slow patch at 0:16–0:19: consider a cut.</p></div></div>
+        <div class="card"><div class="label">Export</div><div class="row" style="margin-top:10px"><button class="btn primary">Export MP4</button><span class="mute">Includes title, description, hashtags and an "AI-generated" reminder.</span></div></div>
+        <div class="footnav"><button class="btn" data-step="edit">← Edit</button><span></span></div>
+      </div>
+    </div>
+
+    <aside class="co" id="co">
+      <div class="head"><span class="chip on">Assistant</span><span class="mute" style="font-weight:500;font-size:12.5px">knows this project</span></div>
+      <div class="msgs">
+        <div class="msg"><b>Scene 3 is 1.2 s short of its line.</b><br>I can freeze the last frame and circle the farmer, or stretch the clip 8%.<div class="row"><button class="btn sm primary">Freeze + circle</button><button class="btn sm">Stretch</button></div></div>
+        <div class="msg">Your trim on scene 2 is locked, so I left it alone.</div>
+        <div class="msg mute">Ask me anything: "make the hook punchier", "why is scene 4 flagged?"</div>
+      </div>
+      <form onsubmit="return false"><input placeholder="Tell Introcut what to change…"></form>
+    </aside>
+  </div>
+</section>
+
+<div class="note"><span>Prototype with mock data. Nothing here is saved.</span>
+  <a data-go="landing">Landing</a><a data-go="welcome">Welcome</a><a data-go="home">Home</a><a data-go="idea">Idea</a><a data-go="clips">Clips</a><a data-go="edit">Edit</a></div>
+
+<script>
+const STAGES=[["idea","Idea","Is it strong enough?"],["script","Script","Format and words"],["shots","Shots","Prompts to paste"],["clips","Clips","Check what you got"],["edit","Edit","Fix, trim, polish"],["finish","Finish","Sound, captions, export"]];
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+let cur="idea";
+function show(route){
+  const isStage=STAGES.some(s=>s[0]===route);
+  $$(".screen").forEach(e=>e.classList.remove("on"));
+  if(isStage){cur=route;$("#ws-screen").classList.add("on");paint();}
+  else $("#"+route).classList.add("on");
+  location.hash="/"+route;
+}
+function paint(){
+  const i=STAGES.findIndex(s=>s[0]===cur);
+  $("#stepper").innerHTML=STAGES.map((s,k)=>`<button class="${k<i?"done":k===i?"cur":""}" data-step="${s[0]}">${k+1} ${s[1]}</button>`).join("");
+  $("#rail").innerHTML=`<div class="label">Your short</div>`+STAGES.map((s,k)=>`<button class="item ${k<i?"done":k===i?"cur":""}" data-step="${s[0]}" title="${s[1]}"><span class="ico">${k<i?"✓":k+1}</span><span class="txt">${s[1]}<small>${s[2]}</small></span></button>`).join("")
+   +`<div class="grow"></div><div class="label">Project</div><button class="item" title="Media"><span class="ico">▤</span><span class="txt">Media<small>6 files</small></span></button><button class="item" title="Settings"><span class="ico">⚙</span><span class="txt">Style &amp; settings</span></button>`;
+  $$(".stage").forEach(e=>e.classList.toggle("on",e.dataset.stage===cur));
+}
+document.addEventListener("click",e=>{
+  const g=e.target.closest("[data-go]"); if(g){show(g.dataset.go);return;}
+  const s=e.target.closest("[data-step]"); if(s){show(s.dataset.step);$("#main").scrollTo(0,0);}
+});
+$("#railBtn").onclick=()=>$("#ws").classList.toggle("rail-c");
+$("#coBtn").onclick=()=>$("#ws").classList.toggle("co-c");
+$("#theme").onclick=()=>{const r=document.documentElement;r.dataset.theme=r.dataset.theme==="light"?"dark":"light";};
+document.addEventListener("keydown",e=>{if(e.target.matches("input,textarea"))return;if(e.key==="[")$("#railBtn").click();if(e.key==="]")$("#coBtn").click();});
+const start=(location.hash||"#/landing").slice(2);
+show($("#"+start)||STAGES.some(s=>s[0]===start)?start:"landing");
+</script>
+</body>
+</html>
