@@ -1,54 +1,61 @@
-# Introcut UX (proposal, awaiting approval)
+# Introcut UX (proposal v3, awaiting approval)
 
-Clickable mock: open `docs/ux/prototype.html` in a browser (mock data, nothing is saved). Keys: `[` collapses the side bar, `]` the assistant. The links at the bottom jump between screens and modes (including **Presenter mode** and **Clips only**).
+Clickable mock: open `docs/ux/prototype.html` in a browser (mock data, nothing is saved). The links at the bottom jump between screens.
 
-This design is derived from `docs/V1-FEATURES.md` (every feature ID A1–H6 has a place below). Accounts and cloud sync are explicitly **not in V1**, so there is no sign-in.
+Derived from `docs/V1-FEATURES.md`. Accounts and cloud sync are **not in V1**, so there is no sign-in.
 
-## Why the first two UIs felt wrong
-They were **editors** (media bin, preview, timeline). Introcut is a **producer + director + editor**: most of a person's time goes on deciding what to make, generating clips in other tools and bringing them back. A timeline matters only late. So the app is organised by **stage**, and the editor is one stage.
+## What was wrong with v1 and v2
+v1 was an editor (bin, preview, timeline). v2 was a dashboard that put every feature on screen at once: crowded, and dark with a neon accent, the same look as existing AI-video tools. Neither felt like Introcut.
 
-## Principles
-1. **One stage, one job**, with a clear next button.
-2. **Always show where you are:** the stage bar is a mini timeline (done / current / to do / not needed).
-3. **The stages adapt to what the person brought** (A5): idea only, idea + material, clips only (Brief/Script/Direct shown as "not needed"), or presenter mode (Record and Avatar replace Direct and Clips).
-4. **Introcut proposes, the person decides:** every finding is a card with Apply / Do it my way. Applied things can be undone; edited things are locked, and Introcut says when it left a lock alone (F3).
-5. **Collapsible everything that isn't the work:** side bar (full to icons), assistant panel, media drawer.
-6. **Dark neutral workspace** so footage colours read true; light theme available.
+## The idea of v3: calm, one thing at a time
+1. **A conversation with a director, not a control panel.** Each screen asks one question or shows one decision.
+2. **The scene is the unit.** The project's home is the **Board**: the scenes as vertical cards, left to right, each with a plain status (Ready / Next / Check / Later). Everything about a scene (line, prompt, clip, diagnosis, trim) lives in that scene's **sheet**, which slides in on demand and closes again.
+3. **"Next" is always stated.** One line at the top of the Board says the single best next action, with a button.
+4. **Detail on request.** Scores, evidence, extra tracks, last-frame tools and so on sit behind "See more" links. A beginner sees little; a power user can open everything.
+5. **Chat is a command bar** at the bottom, not a permanent panel. Suggestions appear as two chips.
+6. **Introcut proposes, the person decides.** Findings are cards with a primary action and "keep mine". Edited things are locked and Introcut says when it left one alone.
 
-## Flow
-Landing (introcut.app) → one-time **Setup** (where the AI runs, languages; H4) → **Home** ("What do you have?", waiting-on-you tracker, projects, import; A1, A5, C6) → **Workspace**.
-
-Stages (generated): **Brief → Script → Direct → Clips → Audio → Edit → Finish**. Presenter: Brief → Script → **Record → Avatar** → Audio → Edit → Finish.
-
-Workspace frame: top bar (project, stage bar, undo/redo, settings, assistant toggle), left rail (stages; Media; Settings), centre (the stage), right assistant panel (F4 chat + suggestions). The **media drawer** (A3, A4) opens from the rail on any stage.
-
-## Feature → screen map
-| Features | Where |
+## Screens (7 in the mock)
+| Screen | Purpose |
 |---|---|
-| A1 project home, import | Home |
-| A2 idea intake, A3 add/record material, A4 probe | Brief; Media drawer (record screen/selfie/voice, drop, paste, link; probe facts per file) |
-| A5 any starting point | Home mode cards; stage bar adapts |
-| B1–B3 readiness, questions (max 3), format + "try another" | Brief |
-| C1 script (EN/HI/NE), C2 shot list | Script |
-| C3 style bible, C4 generator choice + limits + verified date, C5 prompts, C6 tracker, C7 last-frame | Direct; tracker also on Home |
-| D1–D7 match, evidence (measured vs estimated + confidence), diagnosis, action cards, still-missing, redo scene, "check this frame" | Clips |
-| E1–E3 audio-first, voice per line, level/tone match, E4 captions, E5 SFX, E6 music + ducking | Audio; captions/SFX/music also visible as timeline tracks in Edit |
-| F1 phone preview + timeline, F2 per-scene actions, F3 undo + locks, F4 chat, F5 gap fillers | Edit |
-| F6 human touch, F7 retention check | Finish |
-| G1 layouts, G2 screen smart edit, G3–G5 avatar + voice clone | Record, Avatar (Edit shows the layout) |
-| H1 export, H2 title/description/hashtags, H3 AI-label reminder | Finish |
-| H4 settings, H5 privacy notice | Setup, Settings |
+| Start | One big question ("What's your short about?"). Quiet links for "my clips / a screen recording / photos". Recent projects with one-line status ("2 clips waiting on you"). |
+| Verdict | Introcut's honest take in two sentences, one risk, one safer plan, the chosen story format. "See the full score" expands the four scores. |
+| Board | Scene cards, Next banner, command bar. Top bar: Board / Timeline switch, **Look**, **Sound**, undo, **Export**. |
+| Scene sheet | Adapts to the scene: no clip yet shows the prompt and drop zone; a clip present shows the diagnosis and one-click fixes. |
+| Timeline | Large dark preview stage, trim for the selected scene, one-click gap fix, two tracks; "Show all tracks" adds captions, effects, music. |
+| Look / Sound sheets | Style bible; voice per scene, captions, effects, music, level matching. Few toggles each. |
+| Export sheet | One last check, title, AI-label reminder, Export MP4 / quick draft. |
+
+Side bar: **collapsed to icons by default** (Projects, Media, Settings), expands with the menu button.
+
+## Where each V1 feature lives
+| Features | Place |
+|---|---|
+| A1 home, import | Start (recent list) + side bar Projects |
+| A2 intake, A5 any starting point | Start; the extra options (audience, feeling, length) appear after the first answer |
+| A3/A4 material, record, probe | Side bar Media (a drawer), and the scene sheet's drop zone |
+| B1–B3 readiness, questions, format | Verdict |
+| C1/C2 script, shot list | Board (line per scene) + scene sheet |
+| C3 style bible | Look sheet |
+| C4–C7 generator, prompts, tracker, last frame | Scene sheet; tracker as the Next banner and the Start status line |
+| D1–D7 match, evidence, diagnosis, actions, missing, redo | Board statuses + scene sheet; "See evidence" expands the measured/estimated facts |
+| E1–E6 voice, levels, captions, SFX, music | Sound sheet; tracks in Timeline |
+| F1–F5 preview, per-scene actions, locks, chat, fillers | Timeline, scene sheet, command bar |
+| F6/F7 human touch, retention check | Export sheet ("one last check") and Look sheet options |
+| G1–G5 presenter, avatar, voice clone | Start routes to a presenter board whose scenes are screen/avatar types; avatar setup lives in a sheet |
+| H1–H3 export, title, AI label | Export sheet |
+| H4/H5 settings, privacy | Side bar Settings |
 
 ## Identity
-Signature: the **cut line**, one lime vertical line (logo, playhead, current stage). Lime marks the one thing that matters now (primary action, current stage); the rest stays neutral. Flat surfaces, no gradients or blur. System font for now (no licence to track).
+Light and quiet, with an editorial feel: a **serif headline face** for the questions and the scene lines (system serif, no font to license), clean sans for controls, generous space. One accent, **signal orange**, used only for the single primary action and the "Next" marker. The logo is a small clapperboard. The preview stage stays dark so footage colours read true. Dark mode can follow later through tokens.
 
-## Not designed yet (to decide when we get there)
-Mobile layout (V1 targets Chrome/Edge desktop), keyboard shortcut sheet, onboarding hints, empty states for each stage, error states (model download failed, storage full).
+## Not designed yet
+Presenter-mode board, clips-only board, empty and error states (model download, storage full), mobile, shortcuts.
 
 ## What this changes in code (after approval)
-Replace the current shell: landing, setup, home, workspace frame (collapsible rail, assistant panel, media drawer, stage bar). Move the existing editor (preview, inspector, timeline) into the Edit stage and the media bin into the drawer. Stage screens beyond Edit are built with their milestones (M3 Brief/Script, M4 Direct, M5 Clips, and so on); until then they show a clear "coming in M#" state. Model, ops, storage and tests are unaffected. The SelfGlance theme from `3ec88f8` is replaced.
+Replace the current shell with Start, Verdict, Board, scene sheet, Timeline and the three sheets. The existing editor pieces (preview, trim, timeline, media bin) are reused inside Timeline and the Media drawer. Model, ops, storage and tests are unaffected. The SelfGlance theme from `3ec88f8` is dropped. Screens that depend on later milestones show a clear "coming in M#" state until built.
 
 ## Open questions
-- Do the seven stages and their names fit how you think about the work?
-- Dark by default with a light option?
-- Should Home's "Waiting on you" tracker be the first thing a returning user sees?
+- Does calm/one-thing-at-a-time match what you want, or do you need more visible at once?
+- Light with a dark preview stage, or fully dark?
+- Is the Board (scene cards) the right home for a project?
