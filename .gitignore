@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.vite/
+*.log
+.env
+.env.*
+.DS_Store
+Thumbs.db
+coverage/
+# local Claude Code settings (shared project instructions live in CLAUDE.md)
+.claude/settings.local.json
+# user media used for local testing
+/test-media/
