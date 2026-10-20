@@ -3,9 +3,18 @@
 _Last updated: 2026-10-19. Update this file whenever something changes._
 
 ## Where we are
-Planning is done. **Milestones 1 (editor shell) and 2 (project core) are built.** Next: Milestone 3 (brain + brief).
+Planning is done. **Milestones 1 (editor shell) and 2 (project core) are built.** **Milestone 3 (brain + brief) is partly built (M3a, below).** Next: test M3a with a real AI key, then the on-device model and the Nepali/Hindi gate G2.
 
 Run it: `npm install` then `npm run dev` and open http://localhost:5173 (Chrome or Edge). Unit tests: `npm test`.
+
+**M3a: the idea check and the script are built (awaiting your test with a real AI service).**
+- `src/ai/llm/`: one `LlmProvider` interface; `openaiCompat.ts` talks to any OpenAI-format service (Groq, OpenRouter, Google Gemini endpoint, Ollama on your PC). Address, key and model live in `localStorage` only (never in the project file). Plain-language errors for bad key, free limit, no network/CORS.
+- `src/ai/brain/`: `rules.ts` = basic mode (no AI; picks a format by keywords, asks what is obviously missing, makes an EMPTY shot list; never invents scores). `llm.ts` = the AI brain: readiness (hook, clarity, feasibility for free generators, novelty, each with a reason), at most 3 questions, format pick with reason plus runner-ups, then script + shot list (with `roman` lines for Hindi/Nepali, and matching your own files to shots by name). Every AI reply is validated with Zod, one repair retry, then a clear error.
+- `src/ai/formats.ts`: 6 story formats with beats. New ops: `setSettings`, `setQa`, `setReadiness`, `proceedAnyway`, `setFormat`, `setPlan`, `setSceneText` (new lock `script`). A new plan never overwrites a scene you locked.
+- UI: Start has language + length pickers and Enter runs the check; Verdict screen is real (scores, questions, format, "Try another approach", "Continue anyway"); Settings has the AI form (Test connection lists models); board cards show each shot's intent and line; scene sheet edits both.
+- Also: autosave delay 500 → 250 ms (a reload right after an AI result lost it).
+- Verified: 47 unit tests (AI brain with a fake provider, ops, provider with mocked fetch) and a 29-check browser run against a MOCKED AI service (basic mode, AI mode, re-check, lock survives re-plan, key not in project file, reload, rate-limit message).
+- NOT verified: any real AI service (browser access/CORS and free limits are untested; Gemini CORS is reported blocked on a forum), real prompt quality, Hindi/Nepali quality (gate G2). The on-device model (WebLLM) is not built. Prompts for generators are M4.
 
 **UI v3 "Editorial" is built (awaiting the owner's approval of how it looks and feels).** Design rationale and the feature-to-screen map are in `docs/UX.md`; the look is chosen in `docs/ux/styles.html` (option A).
 - Screens (`src/ui/`): `StartScreen` (the one question, saved to `project.brief.idea` via the new `setIdea` op), `VerdictScreen` (honest "not built yet" until M3), `BoardScreen` (scene cards, a Next banner worked out from real state, drag to reorder), `TimelineScreen` (dark preview stage, scene inspector, timeline). Secondary things are side sheets (`Sheets.tsx`): scene, Media (the old media bin + recorder), Export (project file only; video export is M12), Settings (new project, clear data, JSON view).
@@ -47,7 +56,7 @@ Run it: `npm install` then `npm run dev` and open http://localhost:5173 (Chrome 
 | 0 | Repo, CI, schema contract, interfaces | _unassigned_ | todo |
 | 1 | Editor shell (upload + record, media bin, 9:16 preview, timeline) | Bashanta (with Claude) | **done** (needs your manual test: real screen recording and your own clips) |
 | 2 | Project core (schema, ops, undo, locks, OPFS, import/export) | Bashanta (with Claude) | **done** (needs your manual test, see steps in chat) |
-| 3 | Brain + brief (LLM provider, readiness, format, script, shot list) | _unassigned_ | todo |
+| 3 | Brain + brief (LLM provider, readiness, format, script, shot list) | Bashanta (with Claude) | **M3a built** (user-key AI + basic mode); on-device model + G2 still todo |
 | 4 | Direction desk (generator registry, prompts, tracker) | _unassigned_ | todo |
 | 5 | Analyze & Decide engine | _unassigned_ | todo |
 | 6 | Audio-first (timing, voices, alignment, leveling) | _unassigned_ | todo |

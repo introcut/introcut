@@ -14,6 +14,7 @@ const LOCK_LABEL: Record<LockKey, string> = {
   transition: "transition",
   framing: "framing",
   prompt: "prompt",
+  script: "script line",
 };
 
 const sec = (ms: number) => (ms / 1000).toFixed(2);
@@ -53,6 +54,23 @@ export function SceneInspector() {
         </h3>
         <span className="tag">{scene.provenance.by === "user" ? "edited by you" : "made by AI"}</span>
       </div>
+
+      <label className="field">
+        What this shot shows
+        <textarea
+          value={scene.intent}
+          placeholder="Describe the picture for this beat"
+          onChange={(e) => dispatch({ type: "setSceneText", sceneId: scene.id, field: "intent", text: e.target.value }, { coalesce: `intent:${scene.id}` })}
+        />
+      </label>
+      <label className="field">
+        What is said
+        <textarea
+          value={project.script.lines.find((l) => l.sceneId === scene.id)?.text ?? ""}
+          placeholder="One short line, or leave empty for a silent shot"
+          onChange={(e) => dispatch({ type: "setSceneText", sceneId: scene.id, field: "line", text: e.target.value }, { coalesce: `line:${scene.id}` })}
+        />
+      </label>
 
       {src && item && (
         <div className="trim">

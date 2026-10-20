@@ -1,7 +1,7 @@
 import { useStore } from "../store/useStore";
 import { saveProjectJson } from "./opfs";
 
-const DELAY_MS = 500;
+const DELAY_MS = 250;
 
 /** Save the project to browser storage shortly after every change, and immediately when the tab is hidden or closed. */
 export function startAutosave() {

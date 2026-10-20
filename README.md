@@ -19,7 +19,7 @@ No backend, no paid APIs, no uploads: your media never leaves your device.
 npm install
 npm run dev      # open http://localhost:5173 in Chrome or Edge
 ```
-Milestones 1–2 (editor shell + project core) with the Editorial UI: write your idea on the Start screen, then work on the **Board** (scene cards) or the **Timeline** (9:16 preview). Add or record media from the side rail's Media sheet; trim, reorder, replace and delete scenes with undo/redo. Your project saves itself in the browser and can be exported/opened as a JSON file. Press **Try the demo** on an empty board for three sample scenes. Run the unit tests with `npm test`. The idea check, script, prompts and video export arrive in later milestones.
+Milestones 1–2 (editor shell + project core) with the Editorial UI: write your idea on the Start screen, then work on the **Board** (scene cards) or the **Timeline** (9:16 preview). Add or record media from the side rail's Media sheet; trim, reorder, replace and delete scenes with undo/redo. Your project saves itself in the browser and can be exported/opened as a JSON file. Press **Try the demo** on an empty board for three sample scenes. Run the unit tests with `npm test`. Milestone 3 adds the idea check and the script: basic mode works with no AI; connect your own free AI service in Settings for scores and a written script. Generator prompts and video export arrive in later milestones.
 
 ## Docs
 - [`docs/V1-FEATURES.md`](docs/V1-FEATURES.md) — what V1 includes, with a walk-through

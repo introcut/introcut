@@ -14,7 +14,16 @@ export type Op =
   | { type: "replaceSceneMedia"; sceneId: string; mediaId: string }
   | { type: "setLock"; sceneId: string; lock: LockKey; value: boolean }
   | { type: "renameProject"; name: string }
-  | { type: "setIdea"; idea: string };
+  | { type: "setIdea"; idea: string }
+  | { type: "setSettings"; language?: Project["settings"]["language"]; targetDurationSec?: number; llm?: Project["settings"]["llm"] }
+  | { type: "setQa"; qa: Project["brief"]["qa"] }
+  | { type: "setReadiness"; readiness: NonNullable<Project["readiness"]> }
+  | { type: "proceedAnyway" }
+  | { type: "setFormat"; format: NonNullable<Project["format"]> }
+  /** The AI's script and shot list: planned scenes (usually empty slots) plus one script line per scene. */
+  /** The user (or AI) rewrites what a shot must show ("intent", locks "prompt") or the script line spoken in it ("line", locks "script"). */
+  | { type: "setSceneText"; sceneId: string; field: "intent" | "line"; text: string }
+  | { type: "setPlan"; language: string; scenes: Scene[]; lines: Project["script"]["lines"] };
 
 export interface ApplyResult {
   project: Project;
@@ -152,6 +161,68 @@ export function applyOp(project: Project, op: Op, actor: Actor = "user"): ApplyR
       const name = op.name.slice(0, 120);
       if (name === project.name) return refuse(project, "no change");
       return done({ ...project, name });
+    }
+
+    case "setSettings": {
+      const settings = { ...project.settings };
+      if (op.language) settings.language = op.language;
+      if (op.targetDurationSec !== undefined) settings.targetDurationSec = clamp(Math.round(op.targetDurationSec), 15, project.settings.maxDurationSec);
+      if (op.llm) settings.llm = op.llm;
+      if (JSON.stringify(settings) === JSON.stringify(project.settings)) return refuse(project, "no change");
+      return done({ ...project, settings });
+    }
+
+    case "setQa": {
+      const qa = op.qa.slice(0, 10).map((x) => ({ q: x.q.slice(0, 300), a: x.a.slice(0, 1000) }));
+      if (JSON.stringify(qa) === JSON.stringify(project.brief.qa)) return refuse(project, "no change");
+      return done({ ...project, brief: { ...project.brief, qa } });
+    }
+
+    case "setReadiness":
+      return done({ ...project, readiness: { ...op.readiness, proceededAnyway: false } });
+
+    case "proceedAnyway": {
+      if (!project.readiness) return refuse(project, "nothing to proceed past");
+      if (project.readiness.proceededAnyway) return refuse(project, "no change");
+      return done({ ...project, readiness: { ...project.readiness, proceededAnyway: true } });
+    }
+
+    case "setFormat":
+      return done({ ...project, format: op.format });
+
+    case "setSceneText": {
+      const lock: LockKey = op.field === "line" ? "script" : "prompt";
+      if (lockedBy(lock)) return refuse(project, `locked: ${lock}`);
+      const text = op.text.slice(0, 600);
+      const existing = project.script.lines.find((l) => l.sceneId === op.sceneId);
+      if ((op.field === "line" ? (existing?.text ?? "") : scene!.intent) === text) return refuse(project, "no change");
+      const locks = actor === "user" ? { ...scene!.locks, [lock]: true as const } : scene!.locks;
+      const provenance = { ...scene!.provenance, by: actor };
+      let next = mapScene(project, op.sceneId, (s) => ({ ...s, locks, provenance, ...(op.field === "intent" ? { intent: text } : {}) }));
+      if (op.field === "line") {
+        const lines = existing
+          ? project.script.lines.map((l) => (l.sceneId === op.sceneId ? { ...l, text, roman: undefined } : l))
+          : [...project.script.lines, { id: `${op.sceneId}-line`, sceneId: op.sceneId, text, voice: "none" as const }];
+        next = { ...next, script: { ...project.script, lines } };
+      }
+      return done(next);
+    }
+
+    case "setPlan": {
+      const planMedia = new Set(op.scenes.map((s) => s.source?.mediaId).filter((id): id is string => !!id));
+      if (op.scenes.some((s) => s.source && !project.media.some((m) => m.id === s.source!.mediaId))) return refuse(project, "scene media not found");
+      const sceneIds = new Set(op.scenes.map((s) => s.id));
+      if (op.lines.some((l) => !sceneIds.has(l.sceneId))) return refuse(project, "script line points at a missing scene");
+      // A new plan replaces the old one, but never a scene the user touched. Unlocked scenes only make way if the plan uses their media.
+      const replaceable = (s: Scene) => !hasAnyLock(s) && (s.source ? planMedia.has(s.source.mediaId) : s.provenance.by === "ai");
+      const kept = project.scenes.filter((s) => !replaceable(s));
+      const firstRemoved = project.scenes.findIndex(replaceable);
+      const at = firstRemoved === -1 ? kept.length : project.scenes.slice(0, firstRemoved).filter((s) => !replaceable(s)).length;
+      const planned = op.scenes.map((s) => ({ ...s, provenance: { ...s.provenance, by: actor } }));
+      const scenes = [...kept.slice(0, at), ...planned, ...kept.slice(at)];
+      const keptIds = new Set(kept.map((s) => s.id));
+      const lines = [...project.script.lines.filter((l) => keptIds.has(l.sceneId)), ...op.lines];
+      return done({ ...project, scenes, script: { language: op.language, lines } });
     }
 
     case "setIdea": {

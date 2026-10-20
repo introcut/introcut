@@ -1,6 +1,7 @@
 import { useRef, useState, type ClipboardEvent, type DragEvent } from "react";
 import { useStore } from "../store/useStore";
 import { Icon } from "./Icon";
+import { useBrain } from "./brainStore";
 import { useUi } from "./uiStore";
 
 /** One prompt box, like a chat app: type the idea, attach material with +, send. */
@@ -19,6 +20,7 @@ export function StartScreen() {
     if (!canSend) return;
     dispatch({ type: "setIdea", idea: idea.trim() });
     go("verdict");
+    void useBrain.getState().assess();
   };
   const onDrop = (e: DragEvent) => {
     e.preventDefault();
@@ -122,7 +124,29 @@ export function StartScreen() {
                 }}
               />
             </div>
-            <span className="mute">9:16 · about 30 seconds</span>
+            <select
+              className="mini-select"
+              aria-label="Language of the video"
+              value={project.settings.language}
+              onChange={(e) => dispatch({ type: "setSettings", language: e.target.value as "en" | "hi" | "ne" })}
+            >
+              <option value="en">English</option>
+              <option value="hi">हिन्दी</option>
+              <option value="ne">नेपाली</option>
+            </select>
+            <select
+              className="mini-select"
+              aria-label="Length"
+              value={project.settings.targetDurationSec}
+              onChange={(e) => dispatch({ type: "setSettings", targetDurationSec: Number(e.target.value) })}
+            >
+              {[15, 30, 45, 60].map((n) => (
+                <option key={n} value={n}>
+                  {n} s
+                </option>
+              ))}
+            </select>
+            <span className="mute">9:16</span>
             <span className="sp" />
             <button className="send" aria-label="Send" onClick={send} disabled={!canSend}>
               <Icon name="arrowUp" />

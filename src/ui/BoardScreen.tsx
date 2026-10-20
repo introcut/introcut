@@ -3,6 +3,7 @@ import { layout } from "../model/timeline";
 import { useStore } from "../store/useStore";
 import { Icon } from "./Icon";
 import { TopBar } from "./TopBar";
+import { useBrain } from "./brainStore";
 import { useUi } from "./uiStore";
 
 /** The one best next step, worked out from what is really in the project. */
@@ -13,6 +14,14 @@ function useNext() {
   const { openSheet, go } = useUi.getState();
   const { addAllToTimeline, loadDemo } = useStore.getState();
 
+  const empty = scenes.filter((s) => !s.source).length;
+  if (empty > 0)
+    return {
+      title: `Next: ${empty} shot${empty === 1 ? " needs" : "s need"} a clip.`,
+      sub: "Make them in a free tool, or use your own clips and photos. Prompts for each shot come in the next milestone.",
+      label: "Add material",
+      run: () => openSheet("media"),
+    };
   if (media.length === 0)
     return { title: "Next: add your first clip or photo.", sub: "Drop files, record your screen, or try the demo.", label: "Add material", run: () => openSheet("media"), alt: { label: "Try the demo", run: () => void loadDemo() } };
   if (scenes.length === 0)
@@ -30,6 +39,8 @@ export function BoardScreen() {
   const [dragId, setDragId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const next = useNext();
+  const planNote = useBrain((s) => s.planNote);
+  const lineOf = (sceneId: string) => project.script.lines.find((l) => l.sceneId === sceneId)?.text ?? "";
   const { selectScene } = useStore.getState();
   const { openSheet } = useUi.getState();
 
@@ -59,6 +70,8 @@ export function BoardScreen() {
           </button>
         </div>
 
+        {planNote && <div className="note-bar">{planNote}</div>}
+
         <div className="scenes">
           {placed.map((p) => {
             const item = project.media.find((m) => m.id === p.scene.source?.mediaId);
@@ -68,7 +81,7 @@ export function BoardScreen() {
             return (
               <div
                 key={p.scene.id}
-                className={`scene-card ${isSel ? "sel" : ""} ${dragId === p.scene.id ? "dragging" : ""} ${overId === p.scene.id && dragId !== p.scene.id ? "drop-target" : ""}`}
+                className={`scene-card ${p.scene.source ? "" : "empty"} ${isSel ? "sel" : ""} ${dragId === p.scene.id ? "dragging" : ""} ${overId === p.scene.id && dragId !== p.scene.id ? "drop-target" : ""}`}
                 draggable
                 onDragStart={(e) => {
                   setDragId(p.scene.id);
@@ -100,7 +113,7 @@ export function BoardScreen() {
                   aria-label={`Open scene ${p.index + 1}`}
                 >
                   <span className="n">{p.index + 1}</span>
-                  {!thumb && <span className="ph">{item?.kind === "video" ? "video" : "no preview"}</span>}
+                  {!thumb && <span className="ph">{!p.scene.source ? "needs a clip" : item?.kind === "video" ? "video" : "no preview"}</span>}
                 </button>
                 <div className="meta">
                   <span className="pill">{((p.endMs - p.startMs) / 1000).toFixed(1)} s</span>
@@ -109,7 +122,9 @@ export function BoardScreen() {
                       <Icon name="lock" size={12} /> yours
                     </span>
                   )}
-                  <div className="cap-name">{item?.name ?? "scene"}</div>
+                  <div className="cap-name">{item?.name ?? (p.scene.beat ? p.scene.beat.replace(/-/g, " ") : "scene")}</div>
+                  {p.scene.intent && !p.scene.source && <div className="intent">{p.scene.intent}</div>}
+                  {lineOf(p.scene.id) && <div className="line">“{lineOf(p.scene.id)}”</div>}
                 </div>
               </div>
             );

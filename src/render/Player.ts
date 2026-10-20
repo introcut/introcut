@@ -153,7 +153,10 @@ export class Player {
       return;
     }
     const item = project.media.find((m) => m.id === p.scene.source?.mediaId);
-    if (!item) return;
+    if (!item) {
+      if (!p.scene.source) this.drawHint(`Shot ${p.index + 1}: needs a clip`);
+      return;
+    }
     const el = this.mediaEl(item);
     if (!el) {
       this.drawHint(`Missing file: ${item.name}`);

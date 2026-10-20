@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useStore } from "../store/useStore";
 import { fmtBytes } from "./format";
+import { AiSettings } from "./AiSettings";
 import { JsonPanel } from "./JsonPanel";
 import { MediaBin } from "./MediaBin";
 import { SceneInspector } from "./SceneInspector";
@@ -75,9 +76,10 @@ function SettingsSheet() {
   return (
     <>
       <SheetHead title="Settings" />
+      <AiSettings />
       <div>
         <div className="lab">Privacy</div>
-        <p className="mute">Your videos and audio stay on this device. Nothing is uploaded.</p>
+        <p className="mute">Your videos, photos and audio stay on this device. Only if you connect your own AI, your idea text and file names go to that service.</p>
         {usage !== undefined && (
           <p className="mute sheet-row">
             Stored in this browser: {fmtBytes(usage)}

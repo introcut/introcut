@@ -158,3 +158,34 @@
   .board { padding: 20px 16px 40px; }
   .start h1 { font-size: 34px; }
 }
+
+/* --- M3: idea check, script on the board ---------------------------------------------- */
+.mini-select { padding: 6px 10px; border-radius: 999px; font-size: 13.5px; width: auto; }
+.verdict-block { margin-top: 18px; }
+.verdict .callout.bad { background: var(--bad-soft, #fde8e4); }
+.score { margin: 14px 0; }
+.score-head { display: flex; justify-content: space-between; font-weight: 600; }
+.bar { height: 8px; border-radius: 999px; background: var(--chip); margin: 6px 0; overflow: hidden; }
+.bar span { display: block; height: 100%; border-radius: 999px; background: var(--ok); }
+.bar span.s-warn { background: var(--warn); }
+.bar span.s-bad { background: var(--bad); }
+b.s-ok { color: var(--ok); } b.s-warn { color: var(--warn); } b.s-bad { color: var(--bad); }
+.small { font-size: 13px; }
+.ask-q { display: grid; gap: 6px; margin: 12px 0; }
+.ask-q input { width: 100%; }
+.format-name { font-size: 22px; font-weight: 400; }
+.beats { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.radio { display: flex; gap: 10px; align-items: flex-start; margin: 8px 0; }
+.radio input { margin-top: 4px; width: auto; }
+.radio.disabled { opacity: 0.5; }
+.ai-form { display: grid; gap: 10px; margin-top: 14px; }
+.ai-form label { display: grid; gap: 4px; font-size: 13px; font-weight: 600; color: var(--mute); }
+.ai-form input, .ai-form select { width: 100%; font-weight: 400; color: var(--ink); }
+.ok-text { color: var(--ok); font-size: 13px; } .bad-text { color: var(--bad); font-size: 13px; }
+.ai-settings { margin-bottom: 8px; }
+.scene-card .intent { font-size: 12.5px; color: var(--mute); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.scene-card .line { font-size: 13.5px; font-family: var(--serif); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.scene-card.empty .th { border: 2px dashed var(--line); background: none; }
+.note-bar { background: var(--chip); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; font-size: 14px; }
+.field { display: grid; gap: 4px; margin: 10px 0; font-size: 13px; font-weight: 600; color: var(--mute); }
+.field textarea { width: 100%; min-height: 64px; font-weight: 400; color: var(--ink); font-size: 15px; }

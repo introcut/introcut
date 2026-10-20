@@ -39,7 +39,7 @@ export const MediaItemSchema = z.object({
 });
 
 /** What a user edit can lock so the AI leaves it alone. */
-export const LOCK_KEYS = ["trim", "order", "captions", "overlays", "transition", "framing", "prompt"] as const;
+export const LOCK_KEYS = ["trim", "order", "captions", "overlays", "transition", "framing", "prompt", "script"] as const;
 export const LockKeySchema = z.enum(LOCK_KEYS);
 const LocksSchema = z.object(Object.fromEntries(LOCK_KEYS.map((k) => [k, z.literal(true).optional()])) as Record<(typeof LOCK_KEYS)[number], z.ZodOptional<z.ZodLiteral<true>>>);
 
@@ -108,7 +108,8 @@ export const ProjectSchema = z.object({
       maxDurationSec: z.number().default(60),
       language: z.enum(["en", "hi", "ne"]).default("en"),
       captionPreset: z.literal("bold-highlight").default("bold-highlight"),
-      llm: z.enum(["local", "user-key", "rules"]).default("local"),
+      /** "local" (in-browser model) is not built yet and runs as "rules". */
+      llm: z.enum(["local", "user-key", "rules"]).default("rules"),
     })
     .default({}),
   brief: z
@@ -124,8 +125,9 @@ export const ProjectSchema = z.object({
     .default({}),
   readiness: z
     .object({
-      scores: z.object({ hook: z.number(), clarity: z.number(), feasibility: z.number(), novelty: z.number() }),
-      overall: z.number(),
+      /** Absent in basic (no-AI) mode: rules can't honestly judge an idea, so no scores are made up. */
+      scores: z.object({ hook: z.number(), clarity: z.number(), feasibility: z.number(), novelty: z.number() }).optional(),
+      overall: z.number().optional(),
       reasons: z.record(z.string(), z.string()).default({}),
       missing: z.array(z.object({ ask: z.string(), fixHint: z.string() })).default([]),
       proceededAnyway: z.boolean().default(false),
