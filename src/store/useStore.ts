@@ -5,6 +5,7 @@ import { repairProject } from "../model/validate";
 import { ingestFile } from "../media/ingest";
 import { makeDemoFiles } from "../media/demo";
 import * as storage from "../storage/opfs";
+import { flushPending } from "../storage/pending";
 import { emptyHistory, record, redo as redoHistory, undo as undoHistory, type History } from "./history";
 
 /** Browser-only things that can't live in the JSON: the actual file, its object URL and thumbnail. */
@@ -34,6 +35,19 @@ interface State {
   ready: boolean;
   save: { status: SaveStatus; message?: string };
   storageInfo: { usage?: number; quota?: number };
+  /** Whose projects these are (Google account or "guest"), and which one is open. */
+  userKey: string | null;
+  currentId: string | null;
+  projects: ProjectSummary[];
+
+  enterUser: (userKey: string) => Promise<void>;
+  leaveUser: () => Promise<void>;
+  createProject: () => Promise<string>;
+  openProject: (id: string) => Promise<void>;
+  /** Leave the open project (an empty one is discarded). */
+  closeProject: () => Promise<void>;
+  deleteProject: (id: string) => Promise<void>;
+  noteSaved: (project: Project) => void;
 
   init: () => Promise<void>;
   dispatch: (op: Op, opts?: DispatchOptions) => ApplyResult;
@@ -46,10 +60,8 @@ interface State {
   addAllToTimeline: () => void;
   loadDemo: () => Promise<void>;
 
-  newProject: () => Promise<void>;
-  importProjectFile: (file: File) => Promise<void>;
+  importProjectFile: (file: File) => Promise<boolean>;
   exportProject: () => void;
-  clearAllData: () => Promise<void>;
   refreshStorage: () => Promise<void>;
 
   selectScene: (id: string | null) => void;
@@ -73,15 +85,15 @@ function revokeAll(assets: Record<string, Asset>) {
 }
 
 /** Pull media files (and thumbnails) back out of browser storage for every media item in the project. */
-async function loadAssetsFor(project: Project): Promise<Record<string, Asset>> {
+async function loadAssetsFor(userKey: string, project: Project): Promise<Record<string, Asset>> {
   const out: Record<string, Asset> = {};
   if (!storage.storageAvailable()) return out;
   for (const m of project.media) {
     try {
-      const file = await storage.loadMediaFile(m.id, m.name, m.probe.mime);
+      const file = await storage.loadMediaFile(userKey, project.id, m.id, m.name, m.probe.mime);
       if (!file) continue; // missing: the bin offers to re-link it
       const url = URL.createObjectURL(file);
-      const thumb = m.kind === "photo" ? url : m.kind === "video" ? await storage.loadThumb(m.id) : undefined;
+      const thumb = m.kind === "photo" ? url : m.kind === "video" ? await storage.loadThumb(userKey, project.id, m.id) : undefined;
       out[m.id] = { url, thumb, file };
     } catch {
       /* treat as missing */
@@ -89,6 +101,39 @@ async function loadAssetsFor(project: Project): Promise<Record<string, Asset>> {
   }
   return out;
 }
+
+/** What the Projects list needs to know about a project, without loading its media. */
+export interface ProjectSummary {
+  id: string;
+  name: string;
+  updatedAt: string;
+  idea: string;
+  media: number;
+  /** Planned or placed scenes (shots). */
+  shots: number;
+  /** Shots that already have a clip. */
+  filled: number;
+  scriptLines: number;
+  checked: boolean;
+  formatId?: string;
+}
+
+export function summarize(p: Project): ProjectSummary {
+  return {
+    id: p.id,
+    name: p.name,
+    updatedAt: p.updatedAt,
+    idea: p.brief.idea,
+    media: p.media.length,
+    shots: p.scenes.length,
+    filled: p.scenes.filter((x) => x.source).length,
+    scriptLines: p.script.lines.filter((l) => l.text.trim() !== "").length,
+    checked: !!p.readiness,
+    formatId: p.format?.id,
+  };
+}
+
+const isEmptyProject = (p: Project) => p.brief.idea.trim() === "" && p.media.length === 0 && p.scenes.length === 0;
 
 let initPromise: Promise<void> | null = null;
 
@@ -101,22 +146,39 @@ export const useStore = create<State>()((set, get) => {
   };
 
   /** Keep a media file (and its thumbnail) in browser storage so it survives a refresh. */
-  const persistAsset = async (id: string, file: File, kind: string, thumb?: string) => {
+  const persistAsset = async (userKey: string, projectId: string, id: string, file: File, kind: string, thumb?: string) => {
     if (!storage.storageAvailable()) return;
     try {
-      await storage.saveMediaFile(id, file);
-      if (thumb && kind === "video") await storage.saveThumb(id, thumb);
+      await storage.saveMediaFile(userKey, projectId, id, file);
+      if (thumb && kind === "video") await storage.saveThumb(userKey, projectId, id, thumb);
       void get().refreshStorage();
     } catch (e) {
       pushError(`"${file.name}" could not be saved in browser storage (${messageOf(e)}). It will be gone after a refresh.`);
     }
   };
 
-  const replaceProject = async (project: Project) => {
+  const showProject = async (userKey: string, project: Project) => {
     revokeAll(get().assets);
-    const assets = await loadAssetsFor(project);
-    set({ project, assets, history: emptyHistory(), selectedSceneId: null, playheadMs: 0, playing: false });
-    if (storage.storageAvailable()) void storage.collectGarbage(project.media.map((m) => m.id)).then(() => get().refreshStorage());
+    const assets = await loadAssetsFor(userKey, project);
+    set({ project, currentId: project.id, assets, history: emptyHistory(), selectedSceneId: null, playheadMs: 0, playing: false });
+    if (storage.storageAvailable()) void storage.collectGarbage(userKey, project.id, project.media.map((m) => m.id)).then(() => get().refreshStorage());
+  };
+
+  const upsertSummary = (project: Project) =>
+    set((s) => {
+      const sum = summarize(project);
+      const rest = s.projects.filter((p) => p.id !== sum.id);
+      return { projects: [sum, ...rest].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)) };
+    });
+
+  const parseProject = (json: string) => {
+    const parsed = ProjectSchema.safeParse(parseJson(json));
+    return parsed.success ? repairProject(parsed.data) : null;
+  };
+
+  const clearOpen = () => {
+    revokeAll(get().assets);
+    set({ currentId: null, project: emptyProject(), assets: {}, history: emptyHistory(), selectedSceneId: null, playing: false, playheadMs: 0 });
   };
 
   return {
@@ -131,6 +193,9 @@ export const useStore = create<State>()((set, get) => {
     ready: false,
     save: { status: "loading" },
     storageInfo: {},
+    userKey: null,
+    currentId: null,
+    projects: [],
 
     init: () =>
       (initPromise ??= (async () => {
@@ -139,27 +204,88 @@ export const useStore = create<State>()((set, get) => {
           return;
         }
         void storage.requestPersistence();
-        try {
-          const json = await storage.loadProjectJson();
-          if (json) {
-            const parsed = ProjectSchema.safeParse(parseJson(json));
-            if (parsed.success) {
-              const { project, notes } = repairProject(parsed.data);
-              set({ project, assets: await loadAssetsFor(project) });
-              notes.forEach(pushError);
-              void storage.collectGarbage(project.media.map((m) => m.id));
-            } else {
-              await storage.backupBrokenProject(json);
-              pushError("Your saved project could not be read. A copy was kept in browser storage and a new project was started.");
-            }
-          }
-          set({ save: { status: "saved" } });
-        } catch (e) {
-          set({ save: { status: "error", message: `Could not read saved project: ${messageOf(e)}` } });
-        }
-        set({ ready: true });
+        set({ ready: true, save: { status: "saved" } });
         void get().refreshStorage();
       })()),
+
+    /** Sign-in happened: load this person's project list (not the projects themselves). */
+    enterUser: async (userKey) => {
+      if (get().userKey === userKey) return;
+      await flushPending();
+      clearOpen();
+      set({ userKey, projects: [] });
+      if (!storage.storageAvailable()) return;
+      try {
+        const found = await storage.listProjectJsons(userKey);
+        const list: ProjectSummary[] = [];
+        for (const f of found) {
+          const parsed = parseProject(f.json);
+          if (parsed) list.push(summarize(parsed.project));
+        }
+        // Discard blank drafts left behind by an interrupted session.
+        const blank = list.filter((p) => p.idea.trim() === "" && p.media === 0 && p.shots === 0);
+        for (const b of blank) void storage.deleteProject(userKey, b.id);
+        set({ projects: list.filter((p) => !blank.includes(p)).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)) });
+      } catch (e) {
+        set({ save: { status: "error", message: `Could not read your projects: ${messageOf(e)}` } });
+      }
+    },
+
+    leaveUser: async () => {
+      await get().closeProject();
+      set({ userKey: null, projects: [] });
+    },
+
+    createProject: async () => {
+      const userKey = get().userKey ?? "guest";
+      await flushPending();
+      const project = emptyProject();
+      set({ userKey });
+      await showProject(userKey, project);
+      upsertSummary(project);
+      return project.id;
+    },
+
+    openProject: async (id) => {
+      const { userKey } = get();
+      if (!userKey || get().currentId === id) return;
+      await flushPending();
+      try {
+        const json = await storage.loadProjectJson(userKey, id);
+        const parsed = json ? parseProject(json) : null;
+        if (!json || !parsed) {
+          if (json) await storage.backupBrokenProject(userKey, id, json);
+          return pushError("That project could not be read. A copy was kept in browser storage.");
+        }
+        await showProject(userKey, parsed.project);
+        parsed.notes.forEach(pushError);
+      } catch (e) {
+        pushError(`Could not open the project: ${messageOf(e)}`);
+      }
+    },
+
+    closeProject: async () => {
+      const { userKey, currentId, project } = get();
+      if (!currentId) return;
+      await flushPending();
+      if (userKey && isEmptyProject(project)) {
+        await storage.deleteProject(userKey, currentId).catch(() => undefined);
+        set((s) => ({ projects: s.projects.filter((p) => p.id !== currentId) }));
+      }
+      clearOpen();
+    },
+
+    deleteProject: async (id) => {
+      const { userKey, currentId } = get();
+      if (!userKey) return;
+      await flushPending();
+      await storage.deleteProject(userKey, id).catch((e) => pushError(`Could not delete: ${messageOf(e)}`));
+      set((s) => ({ projects: s.projects.filter((p) => p.id !== id) }));
+      if (currentId === id) clearOpen();
+      void get().refreshStorage();
+    },
+
+    noteSaved: (project) => upsertSummary(project),
 
     dispatch: (op, opts = {}) => {
       const { project, history } = get();
@@ -195,20 +321,24 @@ export const useStore = create<State>()((set, get) => {
     },
 
     addFiles: async (files, origin = "unknown", durationHintMs) => {
+      if (!get().currentId) await get().createProject();
+      const userKey = get().userKey ?? "guest";
+      const projectId = get().currentId!;
       set((s) => ({ busy: s.busy + files.length }));
       for (const file of files) {
         try {
           const { project, assets } = get();
+          if (project.id !== projectId) break; // the person switched projects while files were being read
           // A file dropped again after an import (or a storage loss) re-links to the item it matches by name and size.
           const missing = project.media.find((m) => !assets[m.id] && m.name === file.name && m.probe.sizeBytes === file.size);
           const { item, asset } = await ingestFile(file, origin, durationHintMs);
           if (missing) {
             set((s) => ({ assets: { ...s.assets, [missing.id]: asset } }));
-            void persistAsset(missing.id, file, missing.kind, asset.thumb);
+            void persistAsset(userKey, projectId, missing.id, file, missing.kind, asset.thumb);
           } else {
             set((s) => ({ assets: { ...s.assets, [item.id]: asset } }));
             get().dispatch({ type: "addMedia", item });
-            void persistAsset(item.id, file, item.kind, asset.thumb);
+            void persistAsset(userKey, projectId, item.id, file, item.kind, asset.thumb);
           }
         } catch (e) {
           pushError(messageOf(e));
@@ -247,21 +377,31 @@ export const useStore = create<State>()((set, get) => {
       get().addAllToTimeline();
     },
 
-    newProject: () => replaceProject(emptyProject()),
-
     importProjectFile: async (file) => {
       const json = parseJson(await file.text());
-      if (json === undefined) return pushError(`${file.name} is not valid JSON.`);
+      if (json === undefined) {
+        pushError(`${file.name} is not valid JSON.`);
+        return false;
+      }
       const parsed = ProjectSchema.safeParse(json);
       if (!parsed.success) {
         const why = parsed.error.issues.slice(0, 3).map((i) => `${i.path.join(".") || "(top level)"}: ${i.message}`);
-        return pushError(`${file.name} is not an Introcut project (${why.join("; ")}).`);
+        pushError(`${file.name} is not an Introcut project (${why.join("; ")}).`);
+        return false;
       }
-      const { project, notes } = repairProject(parsed.data);
-      await replaceProject(project);
+      const { project: repaired, notes } = repairProject(parsed.data);
+      // An imported file always becomes a NEW project, so it can never overwrite one you already have.
+      const project: Project = { ...repaired, id: crypto.randomUUID(), updatedAt: new Date().toISOString() };
+      const userKey = get().userKey ?? "guest";
+      await flushPending();
+      set({ userKey });
+      await showProject(userKey, project);
+      upsertSummary(project);
+      if (storage.storageAvailable()) await storage.saveProjectJson(userKey, project.id, JSON.stringify(project)).catch(() => undefined);
       notes.forEach(pushError);
       const missing = project.media.filter((m) => !get().assets[m.id]).length;
-      if (missing) pushError(`Project imported. ${missing} media file${missing > 1 ? "s are" : " is"} missing: drop the original files into the media bin and they will re-link.`);
+      if (missing) pushError(`Project imported. ${missing} file${missing > 1 ? "s are" : " is"} missing: add the original files under "What you sent" and they will re-link.`);
+      return true;
     },
 
     exportProject: () => {
@@ -273,11 +413,6 @@ export const useStore = create<State>()((set, get) => {
       a.download = `${slug}.introcut.json`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    },
-
-    clearAllData: async () => {
-      if (storage.storageAvailable()) await storage.clearAll();
-      await replaceProject(emptyProject());
     },
 
     refreshStorage: async () => set({ storageInfo: await storage.estimate() }),

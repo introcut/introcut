@@ -1,8 +1,14 @@
 import { useStore } from "../store/useStore";
 import { Icon } from "./Icon";
-import { useUi } from "./uiStore";
+import { useUi, type View } from "./uiStore";
 
-/** Shown on the Board and Timeline screens: project name, the two views, undo/redo, Export. */
+const TABS: { view: View; label: string }[] = [
+  { view: "overview", label: "Overview" },
+  { view: "board", label: "Board" },
+  { view: "timeline", label: "Timeline" },
+];
+
+/** Shown inside a project: back to Projects, the name, the three views, undo/redo, Export. */
 export function TopBar() {
   const name = useStore((s) => s.project.name);
   const canUndo = useStore((s) => s.history.past.length > 0);
@@ -13,6 +19,15 @@ export function TopBar() {
 
   return (
     <header className="topbar">
+      <button
+        className="text sm back"
+        onClick={async () => {
+          await useStore.getState().closeProject();
+          go("home");
+        }}
+      >
+        ← Projects
+      </button>
       <input
         className="project-name"
         aria-label="Project name"
@@ -20,12 +35,11 @@ export function TopBar() {
         onChange={(e) => dispatch({ type: "renameProject", name: e.target.value }, { coalesce: "rename" })}
       />
       <span className="seg" role="tablist" aria-label="View">
-        <button role="tab" aria-selected={view === "board"} className={view === "board" ? "on" : ""} onClick={() => go("board")}>
-          Board
-        </button>
-        <button role="tab" aria-selected={view === "timeline"} className={view === "timeline" ? "on" : ""} onClick={() => go("timeline")}>
-          Timeline
-        </button>
+        {TABS.map((t) => (
+          <button key={t.view} role="tab" aria-selected={view === t.view} className={view === t.view ? "on" : ""} onClick={() => go(t.view)}>
+            {t.label}
+          </button>
+        ))}
       </span>
       <span className="sp" />
       <button className="icon-btn" onClick={undo} disabled={!canUndo} title="Undo (Ctrl+Z)" aria-label="Undo">

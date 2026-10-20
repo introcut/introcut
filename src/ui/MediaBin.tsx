@@ -45,7 +45,10 @@ export function MediaBin() {
         />
       </div>
 
-      <RecorderPanel />
+      <details className="rec-details">
+        <summary>Record instead</summary>
+        <RecorderPanel />
+      </details>
 
       <div className="panel">
         <div className="row between">
@@ -53,7 +56,7 @@ export function MediaBin() {
           <div className="row">
             <button className="sm" onClick={() => void loadDemo()}>Load demo</button>
             <button className="sm" onClick={addAllToTimeline} disabled={media.length === 0}>
-              Add all
+              Add all to the board
             </button>
           </div>
         </div>
@@ -110,7 +113,7 @@ export function MediaBin() {
                     onClick={() => addSceneFromMedia(m.id)}
                     title={m.kind === "audio" ? "Audio tracks are used from Milestone 6" : ""}
                   >
-                    {used ? "+ Again" : "+ Add"}
+                    {used ? "On board again" : "Add to board"}
                   </button>
                   <button className="text sm" title="Remove from the project (undo brings it back)" onClick={() => dispatch({ type: "removeMedia", mediaId: m.id })}>
                     Remove

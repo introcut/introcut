@@ -5,6 +5,7 @@ const PATHS = {
   settings: "M5 8h14M5 16h14M9 8m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0M15 16m-2 0a2 2 0 1 0 4 0a2 2 0 1 0-4 0",
   undo: "M9 7L4 12l5 5M4 12h10a5 5 0 0 1 0 10h-2",
   redo: "M15 7l5 5-5 5M20 12H10a5 5 0 0 0 0 10h2",
+  folder: "M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",
   plus: "M12 5v14M5 12h14",
   arrowUp: "M12 19V5M5 12l7-7 7 7",
   close: "M6 6l12 12M18 6L6 18",

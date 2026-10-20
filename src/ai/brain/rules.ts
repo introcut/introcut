@@ -35,7 +35,7 @@ export const rulesBrain: Brain = {
       missing: missing.slice(0, 3),
       format: picks[0] ?? { id: CUSTOM_FORMAT_ID, why: "No other format left to try." },
       alternatives: picks.slice(1, 3),
-      summary: "Basic mode can't judge whether free video tools can pull this off. Connect an AI in Settings to get honest scores.",
+      summary: "Basic mode can't judge whether free video tools can pull this off. Connect your own AI (account menu, bottom left) to get honest scores.",
     };
   },
 
@@ -57,7 +57,7 @@ export const rulesBrain: Brain = {
       language: input.language,
       scenes,
       lines: scenes.map((s) => ({ id: crypto.randomUUID(), sceneId: s.id, text: "", voice: "none" as const })),
-      note: "Basic mode made an empty shot list from the format. Write each line yourself, or connect an AI in Settings and run this again.",
+      note: "Basic mode made an empty shot list from the format. Write each line yourself, or connect your own AI (account menu, bottom left) and run this again.",
     };
   },
 };

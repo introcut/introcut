@@ -1,8 +1,12 @@
 import { create } from "zustand";
 
-/** Which screen is showing, which side sheet is open, whether the side rail is expanded. Not part of the project. */
-export type View = "start" | "verdict" | "board" | "timeline";
-export type SheetName = "scene" | "media" | "export" | "settings";
+/**
+ * Which screen is showing, which side sheet is open, whether the side rail is expanded. Not part of the project.
+ * landing + signin: before sign-in. home: the person's projects and the one question. overview: a project's folder
+ * (what you sent, the check, script, clips, final video). verdict, board, timeline: working on the project.
+ */
+export type View = "landing" | "signin" | "home" | "overview" | "verdict" | "board" | "timeline";
+export type SheetName = "scene" | "export" | "account";
 
 interface UiState {
   view: View;
@@ -15,7 +19,7 @@ interface UiState {
 }
 
 export const useUi = create<UiState>()((set) => ({
-  view: "start",
+  view: "landing",
   sheet: null,
   railOpen: false,
   go: (view) => set({ view, sheet: null }),

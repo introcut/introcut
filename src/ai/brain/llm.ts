@@ -121,7 +121,7 @@ async function askJson<T>(provider: LlmProvider, messages: ChatMessage[], schema
       thread = [...messages, { role: "assistant", content: reply }, { role: "user", content: `That reply was not usable (${lastProblem}). Reply again with ONLY the JSON object, exactly in the format asked.` }];
     }
   }
-  throw new LlmError(`The AI didn't answer in a form I can use (${lastProblem}). Try again, or pick a stronger model in Settings.`, "bad-output");
+  throw new LlmError(`The AI didn't answer in a form I can use (${lastProblem}). Try again, or pick a stronger model in your account menu (bottom left).`, "bad-output");
 }
 
 const knownFormat = (p: FormatPick): FormatPick => (p.id === CUSTOM_FORMAT_ID || getFormat(p.id) ? p : { id: CUSTOM_FORMAT_ID, why: p.why });

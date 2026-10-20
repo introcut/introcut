@@ -109,7 +109,7 @@ Legend: **[M#]** milestone from PLAN.md · **🔒 Gate** = depends on a go/no-go
 - Direct integration or automation of Flow, Kling or others (copy and drag-and-drop only)
 - Watermark removal (never)
 - Auto-posting to YouTube, Facebook or TikTok
-- Accounts, cloud sync, team collaboration
+- Cloud sync and team collaboration (Google sign-in identifies the person and keeps projects per person on this device; it does not sync. See `docs/PLATFORM-PLAN.md`)
 - Safari, Firefox and phone browsers as fully supported targets
 - Cursor-accurate tracking in screen recordings
 - Guaranteed realistic lip-sync of an arbitrary voice on a realistic face

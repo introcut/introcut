@@ -167,10 +167,15 @@ export function VerdictScreen() {
             )}
 
             <div className="row verdict-actions">
-              <button className="text" onClick={() => go("start")}>
+              <button className="text" onClick={() => go("overview")}>
                 ← Edit the idea
               </button>
-              <button className="text" onClick={() => openSheet("settings")}>
+              {readiness && (
+                <button className="text" onClick={() => void brain.assess()}>
+                  Check again
+                </button>
+              )}
+              <button className="text" onClick={() => openSheet("account")}>
                 AI settings
               </button>
               <span className="sp" />

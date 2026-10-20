@@ -18,6 +18,8 @@ Rule: nothing is added to Introcut without its license listed here, in the same 
 | `src/theme.css` ("Editorial" look: tokens and base controls) | Look of the whole UI | Written for Introcut (MIT, same as the repo). Icons in `src/ui/Icon.tsx` are simple paths drawn for Introcut. |
 | Fonts | Text | **None bundled.** Sans: Segoe UI Variable on Windows, otherwise the system UI font. Serif headings: Iowan Old Style (macOS/iOS), Palatino Linotype (Windows), Georgia as fallback; all are fonts already on the user's device, so nothing needs a license. If we later bundle a font (for example Inter, SIL OFL 1.1) for a uniform look, it is added here in the same change. |
 
+| Google Identity Services (`accounts.google.com/gsi/client`) | "Sign in with Google" | A Google-hosted script, not bundled and not open source; loaded only on the sign-in page and subject to Google's terms. Owner-approved exception to the licence rule: it is a service, not a library. |
+
 (Transitive dependencies come from `package-lock.json`; run a license audit in Milestone 13.)
 
 ## Planned dependencies (not yet installed)

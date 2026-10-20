@@ -1,13 +1,13 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
+import { useAuth } from "../auth/session";
 import { useStore } from "../store/useStore";
-import { fmtBytes } from "./format";
 import { AiSettings } from "./AiSettings";
-import { JsonPanel } from "./JsonPanel";
-import { MediaBin } from "./MediaBin";
+import { Avatar } from "./Avatar";
+import { fmtBytes } from "./format";
 import { SceneInspector } from "./SceneInspector";
 import { useUi, type SheetName } from "./uiStore";
 
-const TITLES: Record<SheetName, string> = { scene: "Scene", media: "Media", export: "Export", settings: "Settings" };
+const TITLES: Record<SheetName, string> = { scene: "Scene", export: "Export", account: "Account" };
 
 function SheetHead({ title }: { title: string }) {
   const close = useUi.getState().closeSheet;
@@ -22,8 +22,7 @@ function SheetHead({ title }: { title: string }) {
 }
 
 function ExportSheet() {
-  const fileInput = useRef<HTMLInputElement>(null);
-  const { exportProject, importProjectFile } = useStore.getState();
+  const { exportProject } = useStore.getState();
   return (
     <>
       <SheetHead title="Export" />
@@ -32,54 +31,44 @@ function ExportSheet() {
       </div>
       <div>
         <div className="lab">Project file</div>
-        <p className="mute">Save a copy of your project (without the media files), or open one you saved earlier.</p>
+        <p className="mute">Save a copy of this project (without the media files). You can open it again from Home.</p>
         <div className="row sheet-row">
           <button className="primary" onClick={exportProject}>
             Export project file
           </button>
-          <button
-            onClick={() => {
-              if (window.confirm("Opening a project file replaces the current project in this browser. Continue?")) fileInput.current?.click();
-            }}
-          >
-            Open a project file
-          </button>
-          <input
-            ref={fileInput}
-            type="file"
-            accept=".json,application/json"
-            hidden
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) void importProjectFile(f);
-              e.target.value = "";
-            }}
-          />
         </div>
       </div>
     </>
   );
 }
 
-function SettingsSheet() {
+/** Who you are, how Introcut thinks (your own AI or basic mode), and sign out. */
+function AccountSheet() {
+  const user = useAuth((s) => s.user);
   const usage = useStore((s) => s.storageInfo.usage);
   const quota = useStore((s) => s.storageInfo.quota);
-  const store = useStore.getState();
-  const startOver = (action: () => Promise<void>) => async () => {
-    await action();
-    useUi.getState().go("start");
-  };
-  const { newProject, clearAllData } = { newProject: startOver(store.newProject), clearAllData: startOver(store.clearAllData) };
-  const confirmThen = (message: string, action: () => void | Promise<void>) => () => {
-    if (window.confirm(message)) void action();
+  if (!user) return null;
+  const signOut = async () => {
+    await useStore.getState().leaveUser();
+    useAuth.getState().signOut();
+    useUi.getState().go("landing");
   };
   return (
     <>
-      <SheetHead title="Settings" />
+      <SheetHead title="Account" />
+      <div className="who-card">
+        <Avatar user={user} size={48} />
+        <div>
+          <b>{user.name}</b>
+          <div className="mute small">{user.email ?? "Guest: projects stay on this device only"}</div>
+        </div>
+      </div>
       <AiSettings />
       <div>
         <div className="lab">Privacy</div>
-        <p className="mute">Your videos, photos and audio stay on this device. Only if you connect your own AI, your idea text and file names go to that service.</p>
+        <p className="mute">
+          Your videos, photos and audio stay on this device. Only if you connect your own AI, your idea text and file names go to that service.
+        </p>
         {usage !== undefined && (
           <p className="mute sheet-row">
             Stored in this browser: {fmtBytes(usage)}
@@ -88,23 +77,9 @@ function SettingsSheet() {
         )}
       </div>
       <div>
-        <div className="lab">Project</div>
-        <div className="row">
-          <button
-            onClick={confirmThen("Start a new project? The current one is removed from this browser. Export it first if you want to keep it.", newProject)}
-          >
-            New project
-          </button>
-          <button
-            className="danger"
-            title="Delete the project and all media stored in this browser"
-            onClick={confirmThen("Delete the project and ALL media stored in this browser? This cannot be undone.", clearAllData)}
-          >
-            Clear data
-          </button>
-        </div>
+        <button onClick={() => void signOut()}>Sign out</button>
+        <p className="mute small sheet-row">Signing out keeps your projects on this device. They are there when you sign in again.</p>
       </div>
-      <JsonPanel />
     </>
   );
 }
@@ -131,14 +106,8 @@ export function Sheets() {
             <SceneInspector />
           </>
         )}
-        {sheet === "media" && (
-          <>
-            <SheetHead title="Media" />
-            <MediaBin />
-          </>
-        )}
         {sheet === "export" && <ExportSheet />}
-        {sheet === "settings" && <SettingsSheet />}
+        {sheet === "account" && <AccountSheet />}
       </aside>
     </>
   );

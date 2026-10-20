@@ -21,9 +21,17 @@ npm run dev      # open http://localhost:5173 in Chrome or Edge
 ```
 Milestones 1–2 (editor shell + project core) with the Editorial UI: write your idea on the Start screen, then work on the **Board** (scene cards) or the **Timeline** (9:16 preview). Add or record media from the side rail's Media sheet; trim, reorder, replace and delete scenes with undo/redo. Your project saves itself in the browser and can be exported/opened as a JSON file. Press **Try the demo** on an empty board for three sample scenes. Run the unit tests with `npm test`. Milestone 3 adds the idea check and the script: basic mode works with no AI; connect your own free AI service in Settings for scores and a written script. Generator prompts and video export arrive in later milestones.
 
+## Sign-in setup
+The app asks people to sign in with Google. For that, create an OAuth client ID (type Web application) in Google Cloud Console, allow `http://localhost:5173` (and your deployed address) as JavaScript origins, and put it in `.env.local`:
+```
+VITE_GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+```
+Without it the sign-in page offers a guest mode for development. Projects are stored per person on this device; signing in does not sync them. See [`docs/PLATFORM-PLAN.md`](docs/PLATFORM-PLAN.md).
+
 ## Docs
 - [`docs/V1-FEATURES.md`](docs/V1-FEATURES.md) — what V1 includes, with a walk-through
 - [`docs/PLAN.md`](docs/PLAN.md) — architecture, JSON schema, milestones, risks
+- [`docs/PLATFORM-PLAN.md`](docs/PLATFORM-PLAN.md) — sign-in, projects, and what "free credits" can and cannot mean
 - [`docs/WORK-DIVISION.md`](docs/WORK-DIVISION.md) — how contributors split the work
 - [`CREDITS.md`](CREDITS.md) — licenses of everything we use
 
