@@ -233,7 +233,6 @@ b.s-ok { color: var(--ok); } b.s-warn { color: var(--warn); } b.s-bad { color: v
 /* --- Home: the question, then the projects --------------------------------------------- */
 .home { max-width: 860px; margin: 0 auto; padding: 9vh 24px 80px; }
 .home h1 { margin: 6px 0 0; font: 400 44px/1.1 var(--serif); letter-spacing: -0.02em; text-align: center; }
-.greeting { text-align: center; margin: 0; }
 .projects { margin-top: 64px; }
 .projects-head { align-items: center; margin-bottom: 14px; }
 .projects h2 { font: 400 24px/1.2 var(--serif); margin: 0; }

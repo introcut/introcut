@@ -1,5 +1,4 @@
 import { useRef, useState, type ClipboardEvent, type DragEvent } from "react";
-import { useAuth } from "../auth/session";
 import { formatName } from "../ai/formats";
 import { useStore, type ProjectSummary } from "../store/useStore";
 import { useBrain } from "./brainStore";
@@ -9,7 +8,6 @@ import { useUi } from "./uiStore";
 
 /** Home: the one question at the top (like a chat box), and the person's projects below it. */
 export function HomeScreen() {
-  const user = useAuth((s) => s.user);
   const project = useStore((s) => s.project);
   const currentId = useStore((s) => s.currentId);
   const projects = useStore((s) => s.projects);
@@ -47,12 +45,10 @@ export function HomeScreen() {
     await openProject(id);
     if (useStore.getState().currentId === id) go("overview");
   };
-  const first = user?.guest ? "" : (user?.name.split(" ")[0] ?? "");
 
   return (
     <div className="page">
       <div className="home">
-        <p className="mute greeting">{first ? `Hi ${first}.` : "Welcome."}</p>
         <h1>What's your short about?</h1>
         <div
           className={`composer ${over ? "over" : ""}`}
