@@ -1,5 +1,4 @@
 import { Icon, type IconName } from "./Icon";
-import { SaveStatus } from "./SaveStatus";
 import { useUi } from "./uiStore";
 
 function RailButton({ icon, label, on, onClick }: { icon: IconName; label: string; on?: boolean; onClick: () => void }) {
@@ -23,7 +22,6 @@ export function Rail() {
       <RailButton icon="media" label="Media" on={sheet === "media"} onClick={() => openSheet("media")} />
       <span className="grow" />
       <RailButton icon="settings" label="Settings" on={sheet === "settings"} onClick={() => openSheet("settings")} />
-      <SaveStatus />
     </nav>
   );
 }

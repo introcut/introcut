@@ -13,6 +13,7 @@ Run it: `npm install` then `npm run dev` and open http://localhost:5173 (Chrome 
 - Deliberately not shown because not built: Look, Sound, chat/command bar, idea verdict. They arrive with M3–M8 (see `docs/UX.md`).
 - Not designed yet: presenter-mode board, clips-only board, mobile, empty/error states for later milestones.
 - Verified: 30 unit tests, build, and a 50-check headless-browser run of the new UI (`ui.mjs`, outside the repo) covering Start → Verdict → Board, trim/locks/undo/AI-refusal, reorder by buttons and drag on both the board and the timeline, delete/replace, scene sheet, reload persistence, recorded clip, project export/clear/import/re-link, bad import.
+- **Start is now a chat-style composer** (owner feedback): one prompt box, a + menu to attach photos/clips/audio (or open the recorders), attached files as chips, Enter to send. Removed: the save-status line under Settings, the "Already have something?" links, the "What do these numbers mean?" box. Opening a saved project file now lives only in Export. The `ui.mjs` browser check still targets the old Start screen and needs updating before it is used again; unit tests (30) and typecheck pass.
 - The earlier SelfGlance restyle (`3ec88f8`) and the dashboard prototypes are replaced.
 
 **(Superseded) UI restyle, step 1**

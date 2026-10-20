@@ -1,22 +1,33 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type ClipboardEvent, type DragEvent } from "react";
 import { useStore } from "../store/useStore";
+import { Icon } from "./Icon";
 import { useUi } from "./uiStore";
 
+/** One prompt box, like a chat app: type the idea, attach material with +, send. */
 export function StartScreen() {
   const project = useStore((s) => s.project);
+  const busy = useStore((s) => s.busy);
   const [idea, setIdea] = useState(project.brief.idea);
-  const fileInput = useRef<HTMLInputElement>(null);
-  const { dispatch, importProjectFile } = useStore.getState();
+  const [menu, setMenu] = useState(false);
+  const [over, setOver] = useState(false);
+  const files = useRef<HTMLInputElement>(null);
+  const { dispatch, addFiles } = useStore.getState();
   const { go, openSheet } = useUi.getState();
 
-  const check = () => {
+  const canSend = idea.trim() !== "";
+  const send = () => {
+    if (!canSend) return;
     dispatch({ type: "setIdea", idea: idea.trim() });
     go("verdict");
   };
-  const bringMaterial = () => {
-    dispatch({ type: "setIdea", idea: idea.trim() });
-    go("board");
-    openSheet("media");
+  const onDrop = (e: DragEvent) => {
+    e.preventDefault();
+    setOver(false);
+    void addFiles([...e.dataTransfer.files]);
+  };
+  const onPaste = (e: ClipboardEvent) => {
+    const pasted = [...e.clipboardData.files];
+    if (pasted.length > 0) void addFiles(pasted);
   };
   const hasWork = project.scenes.length > 0 || project.media.length > 0 || project.brief.idea !== "";
 
@@ -28,45 +39,96 @@ export function StartScreen() {
           Introcut
         </span>
         <h1>What's your short about?</h1>
-        <div className="ask">
+        <div
+          className={`composer ${over ? "over" : ""}`}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setOver(true);
+          }}
+          onDragLeave={() => setOver(false)}
+          onDrop={onDrop}
+        >
+          {(project.media.length > 0 || busy > 0) && (
+            <ul className="chips">
+              {project.media.map((m) => (
+                <li key={m.id} className="chip">
+                  <span className="tag">{m.kind}</span>
+                  <span className="chip-name" title={m.name}>{m.name}</span>
+                  <button
+                    className="icon-btn chip-x"
+                    aria-label={`Remove ${m.name}`}
+                    onClick={() => dispatch({ type: "removeMedia", mediaId: m.id })}
+                  >
+                    <Icon name="close" size={14} />
+                  </button>
+                </li>
+              ))}
+              {busy > 0 && <li className="chip mute">Reading {busy} file{busy > 1 ? "s" : ""}…</li>}
+            </ul>
+          )}
           <textarea
             aria-label="Your idea"
             placeholder="A monkey teaches how to plant garlic in a paddy field, funny, 30 seconds…"
             value={idea}
             onChange={(e) => setIdea(e.target.value)}
+            onPaste={onPaste}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                send();
+              }
+            }}
           />
-          <div className="ask-row">
-            <span className="mute">Vertical 9:16 · about 30 seconds</span>
-            <button className="go" onClick={check} disabled={idea.trim() === ""}>
-              Check my idea →
+          <div className="composer-row">
+            <div className="plus-wrap">
+              <button className="icon-btn plus" aria-label="Add files" aria-expanded={menu} onClick={() => setMenu((v) => !v)}>
+                <Icon name="plus" />
+              </button>
+              {menu && (
+                <>
+                  <div className="menu-scrim" onClick={() => setMenu(false)} />
+                  <div className="menu" role="menu">
+                    <button
+                      role="menuitem"
+                      onClick={() => {
+                        setMenu(false);
+                        files.current?.click();
+                      }}
+                    >
+                      Add photos, clips or audio
+                    </button>
+                    <button
+                      role="menuitem"
+                      onClick={() => {
+                        setMenu(false);
+                        openSheet("media");
+                        go("board");
+                      }}
+                    >
+                      Record screen, selfie or voice
+                    </button>
+                  </div>
+                </>
+              )}
+              <input
+                ref={files}
+                type="file"
+                multiple
+                hidden
+                accept="video/*,image/*,audio/*"
+                onChange={(e) => {
+                  void addFiles([...(e.target.files ?? [])]);
+                  e.target.value = "";
+                }}
+              />
+            </div>
+            <span className="mute">9:16 · about 30 seconds</span>
+            <span className="sp" />
+            <button className="send" aria-label="Send" onClick={send} disabled={!canSend}>
+              <Icon name="arrowUp" />
             </button>
           </div>
         </div>
-        <p className="alt">
-          Already have something?
-          <button className="link" onClick={bringMaterial}>my clips</button>
-          <button className="link" onClick={bringMaterial}>a screen recording</button>
-          <button className="link" onClick={bringMaterial}>photos and screenshots</button>
-        </p>
-        <p className="alt alt-file">
-          <button className="link" onClick={() => fileInput.current?.click()}>
-            Open a saved project file
-          </button>
-          <input
-            ref={fileInput}
-            type="file"
-            accept=".json,application/json"
-            hidden
-            onChange={async (e) => {
-              const f = e.target.files?.[0];
-              e.target.value = "";
-              if (!f) return;
-              await importProjectFile(f);
-              const p = useStore.getState().project;
-              if (p.scenes.length > 0 || p.media.length > 0) go("board");
-            }}
-          />
-        </p>
         {hasWork && (
           <div className="recent-list">
             <button className="recent" onClick={() => go("board")}>

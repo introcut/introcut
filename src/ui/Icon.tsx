@@ -6,7 +6,9 @@ const PATHS = {
   undo: "M9 7L4 12l5 5M4 12h10a5 5 0 0 1 0 10h-2",
   redo: "M15 7l5 5-5 5M20 12H10a5 5 0 0 0 0 10h2",
   plus: "M12 5v14M5 12h14",
-  lock: "M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z",
+  arrowUp: "M12 19V5M5 12l7-7 7 7",
+  close: "M6 6l12 12M18 6L6 18",
+  lock:"M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z",
 } as const;
 
 export type IconName = keyof typeof PATHS;

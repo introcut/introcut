@@ -121,19 +121,6 @@ export function MediaBin() {
           })}
         </ul>
       </div>
-
-      <details className="panel glossary">
-        <summary>What do these numbers mean?</summary>
-        <p>
-          <b>Aspect ratio</b> is the shape of the picture: width to height. Reels, Shorts and TikTok use <b>9:16</b> (tall). Phone
-          landscape video is 16:9 (wide); Introcut crops it to the middle so it fills the tall frame.
-        </p>
-        <p>
-          <b>dB (decibels)</b> measure loudness here relative to the loudest possible digital sound, which is 0. Normal speech is around
-          −25 to −15 dB on average. Closer to 0 is louder; −35 or lower is very quiet. A peak near 0 means parts may distort (clip).
-          This is an average level, not the broadcast LUFS measure we add later.
-        </p>
-      </details>
     </div>
   );
 }
