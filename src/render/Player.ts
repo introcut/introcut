@@ -20,6 +20,8 @@ export class Player {
   private activeVideo: string | null = null;
   private videos = new Map<string, HTMLVideoElement>();
   private images = new Map<string, HTMLImageElement>();
+  private voices = new Map<string, HTMLAudioElement>();
+  private activeVoice: string | null = null;
 
   constructor(
     canvas: HTMLCanvasElement,
@@ -48,6 +50,7 @@ export class Player {
     this.playing = false;
     cancelAnimationFrame(this.raf);
     this.videos.forEach((v) => v.pause());
+    this.voices.forEach((a) => a.pause());
     this.renderOnce();
     this.onTime(this.t, false);
   }
@@ -78,6 +81,8 @@ export class Player {
     });
     this.videos.clear();
     this.images.clear();
+    this.voices.forEach((a) => a.pause());
+    this.voices.clear();
   }
 
   private tick = (now: number) => {
@@ -89,6 +94,7 @@ export class Player {
       this.t = total;
       this.playing = false;
       this.videos.forEach((v) => v.pause());
+      this.voices.forEach((a) => a.pause());
       this.renderFrame();
       this.onTime(this.t, false);
       return;
@@ -150,7 +156,34 @@ export class Player {
     const el = p && !p.scene.card && item ? this.mediaEl(item) : null;
     if (p && el instanceof HTMLVideoElement) this.syncVideo(el, item!.id, p);
     else this.stopOtherVideo(null);
+    this.syncVoice(p);
     renderFrame(this.ctx, project, placed, this.t, this.assets);
+  }
+
+  /** Play the current scene's spoken line (if it has one) in step with the playhead. */
+  private syncVoice(p: PlacedScene | undefined) {
+    const { project, assets } = this.getSource();
+    const mediaId = p && project.script.lines.find((l) => l.sceneId === p.scene.id)?.audioMediaId;
+    const url = mediaId ? assets[mediaId]?.url : undefined;
+    if (this.activeVoice && this.activeVoice !== mediaId) {
+      this.voices.get(this.activeVoice)?.pause();
+      this.activeVoice = null;
+    }
+    if (!p || !mediaId || !url) return;
+    let a = this.voices.get(mediaId);
+    if (!a) {
+      a = new Audio(url);
+      a.preload = "auto";
+      this.voices.set(mediaId, a);
+    }
+    const target = Math.max(0, (this.t - p.startMs) / 1000);
+    if (!this.playing) {
+      a.pause();
+      return;
+    }
+    this.activeVoice = mediaId;
+    if (Math.abs(a.currentTime - target) > 0.3) a.currentTime = target;
+    if (a.paused && target < (a.duration || Infinity)) void a.play().catch(() => undefined);
   }
 
   private stopOtherVideo(keepId: string | null) {

@@ -3,7 +3,7 @@
 // can't crash the renderer. Design space is 1080 x 1920 (renderFrame scales it to the real canvas).
 import { z } from "zod";
 import type { Scene, TemplateId } from "../model/types";
-import { drawCentered, easeOutBack, easeOutCubic, fitText, fontFor } from "./text";
+import { drawCentered, easeOutBack, easeOutCubic, fitParagraphs, fitText, fontFor } from "./text";
 
 export const W = 1080;
 export const H = 1920;
@@ -53,20 +53,24 @@ const hookText: TemplateDef = {
   schema: HookTextProps,
   draw(ctx, props: z.infer<typeof HookTextProps>, t) {
     const p = background(ctx, props.tone);
-    const size = Math.min(...props.lines.map((l) => fitText(ctx, l, boxW, boxH / props.lines.length, 150, 40).size));
-    const lh = size * 1.3;
-    const top = boxCy - (props.lines.length * lh) / 2 + lh / 2;
-    props.lines.forEach((line, i) => {
+    const fit = fitParagraphs(ctx, props.lines, boxW, boxH, 150, 40);
+    const rowH = fit.size * fit.lineHeight;
+    const totalH = fit.blocks.reduce((n, blk) => n + blk.length * rowH, 0) + fit.gap * (fit.blocks.length - 1);
+    let y = boxCy - totalH / 2;
+    fit.blocks.forEach((rows, i) => {
+      const blockH = rows.length * rowH;
       const k = easeOutBack((t - i * 220) / 420); // each line starts 0.22 s after the one above
-      if (k <= 0) return;
-      ctx.save();
-      ctx.globalAlpha = Math.min(1, k * 1.4);
-      ctx.translate(W / 2, top + i * lh + (1 - k) * 60);
-      ctx.scale(0.92 + 0.08 * k, 0.92 + 0.08 * k);
-      ctx.font = fontFor(size);
-      ctx.fillStyle = i === props.lines.length - 1 && props.lines.length > 1 ? p.accent : p.fg;
-      drawCentered(ctx, fitText(ctx, line, boxW, lh * 2, size, 40), 0, 0);
-      ctx.restore();
+      if (k > 0) {
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, k * 1.4);
+        ctx.translate(W / 2, y + blockH / 2 + (1 - k) * 60);
+        ctx.scale(0.92 + 0.08 * k, 0.92 + 0.08 * k);
+        ctx.font = fontFor(fit.size);
+        ctx.fillStyle = i === fit.blocks.length - 1 && fit.blocks.length > 1 ? p.accent : p.fg;
+        drawCentered(ctx, { size: fit.size, lines: rows, lineHeight: fit.lineHeight }, 0, 0);
+        ctx.restore();
+      }
+      y += blockH + fit.gap;
     });
   },
 };

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { emptyConfig, isConfigured, loadLlmConfig, PRESETS, saveLlmConfig } from "../ai/llm/config";
 import { openAiCompatProvider, type OpenAiCompatConfig } from "../ai/llm/openaiCompat";
+import { loadTtsConfig, saveTtsConfig, VOICES, type TtsConfig } from "../audio/tts/config";
 import { useStore } from "../store/useStore";
 
 /** Choose who thinks: basic rules (no AI) or the user's own AI service. The key stays in this browser, never in the project file. */
@@ -10,6 +11,7 @@ export function AiSettings() {
   const [models, setModels] = useState<string[]>([]);
   const [test, setTest] = useState<{ ok: boolean; text: string } | null>(null);
   const [testing, setTesting] = useState(false);
+  const [tts, setTts] = useState<TtsConfig>(() => loadTtsConfig());
   const { dispatch } = useStore.getState();
 
   const update = (patch: Partial<OpenAiCompatConfig>) => {
@@ -96,6 +98,47 @@ export function AiSettings() {
               ))}
             </datalist>
           </label>
+          {/generativelanguage.googleapis.com/.test(config.baseUrl) && (
+            <>
+              <label>
+                Voice model (optional, for spoken lines)
+                <input
+                  list="tts-models"
+                  value={tts.model}
+                  onChange={(e) => {
+                    const next = { ...tts, model: e.target.value.trim() };
+                    setTts(next);
+                    saveTtsConfig(next);
+                  }}
+                  placeholder="press Test, then pick a model with TTS in its name"
+                  spellCheck={false}
+                />
+                <datalist id="tts-models">
+                  {models
+                    .filter((m) => /tts/i.test(m))
+                    .map((m) => (
+                      <option key={m} value={m.replace(/^models\//, "")} />
+                    ))}
+                </datalist>
+              </label>
+              <label>
+                Voice
+                <select
+                  value={tts.voice}
+                  onChange={(e) => {
+                    const next = { ...tts, voice: e.target.value };
+                    setTts(next);
+                    saveTtsConfig(next);
+                  }}
+                >
+                  {VOICES.map((v) => (
+                    <option key={v}>{v}</option>
+                  ))}
+                </select>
+              </label>
+              <p className="mute small">Voices send the text of each line to Google. Nepali and Hindi are listed by Google as supported; how natural they sound is untested here.</p>
+            </>
+          )}
           <div className="row">
             <button onClick={runTest} disabled={testing || config.baseUrl === ""}>
               {testing ? "Testing…" : "Test connection"}

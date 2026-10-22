@@ -33,7 +33,7 @@ Rule: nothing is added to Introcut without its license listed here, in the same 
 | transformers.js | Whisper/aligner, SigLIP/CLIP, CLAP in the browser | Apache-2.0 |
 | Whisper | Speech recognition | MIT |
 | Silero VAD | Speech detection | MIT |
-| kokoro-js / Kokoro | Browser TTS | Apache-2.0 (verify repo) |
+| kokoro-js / Kokoro | Browser TTS | kokoro-js is Apache-2.0, **but its `phonemizer` dependency embeds eSpeak NG (GPL-3.0)**. NOT added; see STATUS.md decision |
 | Chatterbox | Voice clone on user's own free GPU | MIT |
 | MuseTalk | Avatar on user's own free Hugging Face Space | MIT code; weights commercial use per README (verify) |
 | vite-plugin-pwa | PWA | MIT |

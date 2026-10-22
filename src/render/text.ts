@@ -43,6 +43,30 @@ export function fitText(ctx: CanvasRenderingContext2D, text: string, maxW: numbe
   }
 }
 
+export interface FittedParagraphs {
+  size: number;
+  /** Each paragraph, already wrapped into rows. */
+  blocks: string[][];
+  lineHeight: number;
+  /** Space between paragraphs, in pixels. */
+  gap: number;
+}
+
+/** Largest font size at which several paragraphs (each possibly wrapping onto more rows) fit one box together. */
+export function fitParagraphs(ctx: CanvasRenderingContext2D, paras: string[], maxW: number, maxH: number, maxSize: number, minSize = 40, weight = 800): FittedParagraphs {
+  const lh = paras.some(hasDevanagari) ? 1.4 : 1.18;
+  let size = maxSize;
+  for (;;) {
+    ctx.font = fontFor(size, weight);
+    const blocks = paras.map((p) => wrapLines(ctx, p, maxW));
+    const rows = blocks.reduce((n, b) => n + b.length, 0);
+    const widest = Math.max(...blocks.flat().map((l) => ctx.measureText(l).width));
+    const gap = size * 0.25 * (paras.length - 1);
+    if ((rows * size * lh + gap <= maxH && widest <= maxW) || size <= minSize) return { size, blocks, lineHeight: lh, gap: size * 0.25 };
+    size -= 4;
+  }
+}
+
 /** Draw lines centered on (cx, cy). Call after fitText so ctx.font is set. */
 export function drawCentered(ctx: CanvasRenderingContext2D, fit: FittedText, cx: number, cy: number) {
   ctx.textAlign = "center";

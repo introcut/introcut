@@ -88,6 +88,11 @@ export function applyOp(project: Project, op: Op, actor: Actor = "user"): ApplyR
         ...project,
         media: project.media.filter((m) => m.id !== op.mediaId),
         scenes: project.scenes.filter((s) => s.source?.mediaId !== op.mediaId),
+        // A spoken line whose audio file was removed goes back to "no voice".
+        script: {
+          ...project.script,
+          lines: project.script.lines.map((l) => (l.audioMediaId === op.mediaId ? { ...l, audioMediaId: undefined, voice: "none" as const } : l)),
+        },
       });
     }
 

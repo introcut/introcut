@@ -273,3 +273,9 @@ b.s-ok { color: var(--ok); } b.s-warn { color: var(--warn); } b.s-bad { color: v
 .export-panel p { margin: 0; }
 .problems { margin: 0; padding-left: 18px; color: var(--warn); font-size: 14px; }
 .export-panel .bar span { background: var(--accent); transition: width 0.15s; }
+
+/* --- Voice lines ----------------------------------------------------------------------------- */
+.script .voice-line { display: grid; grid-template-columns: 1fr auto; gap: 8px 14px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.vl-text { display: grid; gap: 2px; min-width: 0; }
+.vl-actions { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.vl-error { grid-column: 1 / -1; margin: 0; }

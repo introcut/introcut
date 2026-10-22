@@ -1,5 +1,6 @@
 // The user's own AI service settings. Kept in this browser only (localStorage), never in the project file,
 // so exporting or sharing a project can't leak the key.
+import { notifySettings } from "../../settingsBus";
 import type { OpenAiCompatConfig } from "./openaiCompat";
 
 const KEY = "introcut.llm";
@@ -33,6 +34,7 @@ export function saveLlmConfig(c: OpenAiCompatConfig): void {
   } catch {
     /* ignore: the settings just won't be remembered */
   }
+  notifySettings();
 }
 
 export const isConfigured = (c: OpenAiCompatConfig) => c.baseUrl.trim() !== "" && c.model.trim() !== "";

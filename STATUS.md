@@ -7,6 +7,17 @@ Planning is done. **Milestones 1 (editor shell) and 2 (project core) are built.*
 
 Run it: `npm install` then `npm run dev` and open http://localhost:5173 (Chrome or Edge). Unit tests: `npm test`.
 
+**M-Slice ("video through code") is built: one story, end to end, in the browser.** Decided from `reports/Code based video generation options.md`: Introcut now makes videos from code-drawn scenes, not only from generated clips.
+- **Drawing:** `src/render/renderFrame.ts` is the ONE function that draws a frame; the preview (`Player.ts`) and the exporter both call it. Built-in animated templates in `src/render/templates.ts` (hook text, big number, end card; props checked with Zod, the AI only fills props, never writes code). Stills get a slow push-in (`framing.mode = "auto-zoom"`). Word-by-word captions. Bundled fonts (Inter + Noto Sans Devanagari, OFL) in `fonts.ts`.
+- **Export:** `src/export/exportVideo.ts` draws every frame, encodes with WebCodecs and writes an MP4 with Mediabunny (MPL-2.0, unmodified): 1080x1920, 30 fps, H.264 + AAC (falls back to VP9 / Opus with a warning if the browser lacks them). Sound is mixed offline in `src/audio/mix.ts`. Export is blocked, with reasons, if a shot has no content.
+- **Voice (three ways):** record your own voice per line, upload a file, or Google's text-to-speech with your OWN key (`src/audio/tts/gemini.ts`, plus a voice model picked in Account). The scene is resized to fit the voice; caption timing is an ESTIMATE spread over the line (`audio/timing.ts`), not measured.
+- **Demo:** "Load demo" makes "The late rain (fiction)": 3 text cards + 3 drawn stills + captions + script lines (`media/storyDemo.ts`).
+- **New ops:** `setSceneCard`, `setSlotMs`, `setCaptions`, `setLineAudio`. Schema: `scene.card`, `script.lines[].audioMediaId`.
+- **Measured (this machine, headless Chrome 155, software encode):** 27.2 s story exported in 11-12 s (about 70 frames per second); 14.8 s story with voices in 5 s. NOT measured: low-end laptops, Safari/Firefox, a real GPU-less netbook.
+- **Verified:** 54 unit tests; browser runs (`m5`: export + file inspection with Mediabunny + 6 frames compared against the preview, mean difference about 1/255; `m6`: record a voice with a fake microphone, mocked Google speech, export with AAC, check sound is present where expected and silent in the gap; `m7`: Hindi/Nepali text renders correctly). Found and fixed: hook-card lines overlapped when one wrapped onto two rows; the "Google voice" button needed a reload to appear.
+- **NOT verified:** the real Google speech service (needs your key; request/response shape is from Google's docs as I remember them), how natural Nepali/Hindi voices sound, Safari/Firefox export, memory use on a low-RAM machine, phones.
+- **DECISION NEEDED (licence):** the free offline English voice we planned, Kokoro (`kokoro-js`, Apache-2.0), pulls in `phonemizer`, which embeds a compiled copy of eSpeak NG, a **GPL-3.0** program. Bundling it into this MIT app is not clean. So Kokoro is NOT added. Options: (a) skip it, rely on your recording / Google's voice (current); (b) write our own permissive text-to-phoneme step for English (real work, quality risk); (c) load Kokoro from a CDN at runtime only after an on-screen notice (legally grey, needs a lawyer); (d) accept GPL for the whole app (against our rules).
+
 **Platform shell (landing, sign-in, projects) is built.** Landing page → Get started → Google sign-in (guest mode when no `VITE_GOOGLE_CLIENT_ID`) → Home (the question + your projects) → project Overview ("folder": what you sent, check, script, clips, final video) → Verdict / Board / Timeline. The sidebar has Home, the project list and the account button; **Settings and the Media sheet are gone** (AI connection is in the account sheet; adding files is in the composer and the Overview). Storage is now per person and per project (`introcut-v2/u/<id>/p/<id>/`); old single-project data from before this change is not migrated. Read `docs/PLATFORM-PLAN.md` for what sign-in can and cannot do (it does not sync, and "use their Google credits for video" is **not** supported by what we found). Verified: 47 unit tests, build, and a 25-check browser run (landing, guest sign-in, two projects, attach on Home, no cross-saving when switching fast, reload, AI connection, delete, sign out and in). NOT verified: the real Google button (needs your client ID).
 
 **M3a: the idea check and the script are built (awaiting your test with a real AI service).**
@@ -67,7 +78,7 @@ Run it: `npm install` then `npm run dev` and open http://localhost:5173 (Chrome 
 | 9 | Gap fillers + finishing + retention check | _unassigned_ | todo |
 | 10 | Presenter mode | _unassigned_ | todo |
 | 11 | Avatar + voice clone | _unassigned_ | todo |
-| 12 | Export | _unassigned_ | todo |
+| 12 | Export | Bashanta (with Claude) | **thin slice built** (M-Slice: MP4 export of cards, stills, clips and voice; no music/SFX/loudness yet) |
 | 13 | Ship (PWA, deploy, license audit) | _unassigned_ | todo |
 
 ## Risk gates (go/no-go tests)

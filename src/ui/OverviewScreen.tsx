@@ -4,6 +4,7 @@ import { useBrain } from "./brainStore";
 import { ExportPanel } from "./ExportPanel";
 import { MediaBin } from "./MediaBin";
 import { TopBar } from "./TopBar";
+import { VoiceLine } from "./VoiceLine";
 import { useUi } from "./uiStore";
 
 const SCORE_LABEL = { hook: "Hook", clarity: "Clarity", feasibility: "Doable", novelty: "Fresh" } as const;
@@ -126,18 +127,17 @@ export function OverviewScreen() {
               </button>
             </>
           ) : (
-            <ol className="script">
-              {shots.map((s, i) =>
-                lineOf(s.id) ? (
-                  <li key={s.id}>
-                    <span className="mute small">
-                      {i + 1} · {s.beat.replace(/-/g, " ") || "shot"}
-                    </span>
-                    <span className="serif">“{lineOf(s.id)}”</span>
-                  </li>
-                ) : null,
-              )}
-            </ol>
+            <>
+              <ol className="script">
+                {shots.map((s, i) =>
+                  lineOf(s.id).trim() ? <VoiceLine key={s.id} sceneId={s.id} index={i} beat={s.beat} text={lineOf(s.id)} /> : null,
+                )}
+              </ol>
+              <p className="mute small">
+                Say each line yourself, upload a recording, or (with your own Google key and a voice model in Account) let Google read it. The scene is
+                resized to fit the voice. Caption timing is estimated from the line, not measured.
+              </p>
+            </>
           )}
           {shots.length > 0 && (
             <button className="text sm" onClick={() => go("board")}>
