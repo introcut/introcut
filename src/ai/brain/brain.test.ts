@@ -83,9 +83,9 @@ describe("llmBrain.plan", () => {
   it("builds scenes: cards for the words, the user's file where it fits, keeps every line", async () => {
     const plan = await llmBrain(fake(PLAN)).plan(input(), { id: "how-to", why: "" });
     expect(plan.scenes).toHaveLength(3);
-    expect(plan.scenes[0]).toMatchObject({ role: "hook", type: "card", card: { template: "hook-text" }, slot: { targetMs: 4000, status: "filled" } });
+    expect(plan.scenes[0]).toMatchObject({ role: "hook", type: "card", card: { template: "art-scene" }, slot: { targetMs: 4000, status: "filled" } });
     expect(plan.scenes[1]).toMatchObject({ type: "user-media", source: { mediaId: "m1", inMs: 0, outMs: 6000 }, slot: { status: "filled" } });
-    expect(plan.scenes[2]).toMatchObject({ role: "cta", type: "card", card: { template: "end-card" } });
+    expect(plan.scenes[2]).toMatchObject({ role: "cta", type: "card", card: { template: "art-scene" } });
     expect(plan.scenes[2].slot.targetMs).toBe(1500);
     expect(plan.lines.map((l) => l.text)).toEqual(["Namaste", "", "Follow"]);
     expect(plan.lines[0].roman).toBe("Namaste");
@@ -117,9 +117,10 @@ describe("rulesBrain", () => {
     const plan = await rulesBrain.plan({ ...input(), idea, media: [] }, { id: "mini-story", why: "" });
     expect(plan.scenes).toHaveLength(5);
     expect(plan.scenes.every((sc) => sc.card && sc.slot.status === "filled")).toBe(true);
-    expect(plan.scenes[0].card?.template).toBe("hook-text");
-    expect(plan.scenes[2].card?.template).toBe("big-number");
-    expect(plan.scenes[4].card?.template).toBe("end-card");
+    expect(plan.scenes[0].card?.template).toBe("art-scene");
+    expect(plan.scenes[2].card?.template).toBe("art-scene");
+    expect((plan.scenes[2].card?.props as { badge?: string }).badge).toBe("3 days");
+    expect(plan.scenes[4].card?.template).toBe("art-scene");
     expect(plan.lines.map((l) => l.text)[1]).toBe("Ram's seedlings stood in dry mud.");
     expect(plan.note).toMatch(/your own words/);
   });

@@ -2,6 +2,7 @@
 // The AI (or the user) writes the words; this decides how each line is shown. It never invents facts or numbers: it only
 // picks a template for words that already exist.
 import { estimateWords } from "../audio/timing";
+import { directArt, type ArtContext } from "./art";
 import { makeScene, type Scene } from "../model/types";
 
 export interface ShotInput {
@@ -43,7 +44,7 @@ export function hookLines(text: string): string[] {
   return [w.slice(0, mid).join(" "), w.slice(mid).join(" ")];
 }
 
-const NUMBER = /(\d[\d,.]*\d|\d)(\s?(?:%|percent|days?|weeks?|months?|years?|hours?|minutes?|seconds?|kg|km|x|times|rupees|dollars))?/i;
+const NUMBER = /(\d[\d,.]*\d|\d)(\s?(?:%|percent|days?|weeks?|months?|years?|hours?|minutes?|seconds?|cm|mm|km|kg|g|m|ml|l|litres?|liters?|feet|inches|x|times|rupees|dollars|सेमी|दिन|हप्ता|महिना|वर्ष|घण्टा))?/i;
 
 /** A big-number card if the line has a number in it: the number is shown large and the rest of the sentence below it. */
 export function numberCard(text: string): { value: string; label: string } | null {
@@ -57,7 +58,7 @@ export function numberCard(text: string): { value: string; label: string } | nul
 const BODY_TONES = ["paper", "ink", "paper", "accent", "ink"] as const;
 
 /** One scene (and its script line) for one shot. `bodyIndex` rotates colours so neighbouring cards don't look alike. */
-export function compileShot(shot: ShotInput, index: number, total: number, bodyIndex: number): { scene: Scene; line: CompiledLine } {
+export function compileShot(shot: ShotInput, index: number, total: number, bodyIndex: number, before?: ArtContext): { scene: Scene; line: CompiledLine } {
   const text = (shot.line.trim() || shot.intent?.trim().split(/[.!?]/)[0] || "…").slice(0, 160);
   const isFirst = index === 0;
   const isLast = index === total - 1 && total > 1;
@@ -76,16 +77,22 @@ export function compileShot(shot: ShotInput, index: number, total: number, bodyI
       slot: { targetMs: Math.max(500, out), status: "filled", flags: [] },
     });
   } else if (isFirst || shot.role === "hook") {
-    scene = makeScene({ ...base, role: "hook", type: "card", card: { template: "hook-text", props: { lines: hookLines(text), tone: "ink" } }, slot: { targetMs: ms, status: "filled", flags: [] } });
+    scene = makeScene({ ...base, role: "hook", type: "card", card: { template: "art-scene", props: { text, big: true, ...directArt(text, index, before) } }, slot: { targetMs: ms, status: "filled", flags: [] } });
   } else if (isLast || shot.role === "cta") {
-    scene = makeScene({ ...base, role: "cta", type: "card", card: { template: "end-card", props: { headline: text, tone: "accent" } }, slot: { targetMs: ms, status: "filled", flags: [] } });
+    scene = makeScene({ ...base, role: "cta", type: "card", card: { template: "art-scene", props: { text, big: true, ...directArt(text, index, before) } }, slot: { targetMs: ms, status: "filled", flags: [] } });
   } else {
     const num = numberCard(text);
     const tone = BODY_TONES[bodyIndex % BODY_TONES.length];
+    const art = directArt(text, index, before);
+    // A number with nothing to draw stays a big-number card; a number in a story that has pictures becomes a badge on the picture.
+    const picture = art.items.some((it) => it.kind !== "star");
     scene = makeScene({
       ...base,
       type: "card",
-      card: num ? { template: "big-number", props: { value: num.value, label: num.label, tone: tone === "accent" ? "paper" : tone } } : { template: "text-card", props: { text, tone } },
+      card:
+        num && !picture
+          ? { template: "big-number", props: { value: num.value, label: num.label, tone: tone === "accent" ? "paper" : tone } }
+          : { template: "art-scene", props: { text, ...(num ? { badge: num.value } : {}), ...art } },
       slot: { targetMs: ms, status: "filled", flags: [] },
     });
   }
@@ -94,9 +101,13 @@ export function compileShot(shot: ShotInput, index: number, total: number, bodyI
 
 export function compileShots(shots: ShotInput[]): { scenes: Scene[]; lines: CompiledLine[] } {
   let body = 0;
+  let before: ArtContext | undefined;
   const out = shots.map((s, i) => {
-    const r = compileShot(s, i, shots.length, body);
-    if (!r.scene.card || r.scene.card.template === "text-card" || r.scene.card.template === "big-number") body++;
+    const r = compileShot(s, i, shots.length, body, before);
+    const t = r.scene.card?.template;
+    if (!r.scene.card || t === "art-scene" || t === "big-number") body++;
+    const p = r.scene.card?.props as { backdrop?: ArtContext["backdrop"]; character?: ArtContext["character"] } | undefined;
+    if (p?.backdrop) before = { backdrop: p.backdrop, character: p.character ?? before?.character };
     return r;
   });
   return { scenes: out.map((o) => o.scene), lines: out.map((o) => o.line) };

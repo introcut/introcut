@@ -3,6 +3,7 @@
 // can't crash the renderer. Design space is 1080 x 1920 (renderFrame scales it to the real canvas).
 import { z } from "zod";
 import type { Scene, TemplateId } from "../model/types";
+import { BACKDROPS, drawBackdrop, drawItem, ITEM_KINDS } from "./art";
 import { drawCentered, easeOutBack, easeOutCubic, fitParagraphs, fitText, fontFor } from "./text";
 
 export const W = 1080;
@@ -20,6 +21,19 @@ const PALETTE = {
 const HookTextProps = z.object({ lines: z.array(z.string().max(120)).min(1).max(4).default(["…"]), tone: Tone });
 const BigNumberProps = z.object({ value: z.string().max(24).default("0"), label: z.string().max(140).default(""), tone: Tone });
 const TextCardProps = z.object({ text: z.string().max(160).default("…"), tone: Tone });
+const ArtItemSchema = z.object({ kind: z.enum(ITEM_KINDS), x: z.number().min(-200).max(1300), y: z.number().min(0).max(2000), s: z.number().min(0.2).max(3), flip: z.boolean().optional() });
+const ArtSceneProps = z.object({
+  text: z.string().max(160).default(""),
+  backdrop: z.enum(BACKDROPS).default("abstract"),
+  items: z.array(ArtItemSchema).max(4).default([]),
+  /** A number to show large on the picture (for a line that has a number in it). */
+  badge: z.string().max(24).optional(),
+  /** The last character shown, remembered so the next line can keep it. */
+  character: z.string().optional(),
+  /** Bigger text (for the opening line). */
+  big: z.boolean().default(false),
+  seed: z.number().int().default(1),
+});
 const EndCardProps = z.object({ headline: z.string().max(120).default(""), sub: z.string().max(140).optional(), tone: Tone });
 
 interface TemplateDef {
@@ -148,7 +162,61 @@ const textCard: TemplateDef = {
   },
 };
 
-export const TEMPLATES: Record<TemplateId, TemplateDef> = { "hook-text": hookText, "big-number": bigNumber, "end-card": endCard, "text-card": textCard };
+const artScene: TemplateDef = {
+  name: "Picture scene",
+  description: "A drawn backdrop with characters and props, and the line of the story over it.",
+  example: { text: "The monkey planted garlic.", backdrop: "day", items: [{ kind: "monkey", x: 360, y: 1380, s: 1.4 }, { kind: "garlic", x: 740, y: 1380, s: 1.1 }], big: false, seed: 1 },
+  schema: ArtSceneProps,
+  draw(ctx, props: z.infer<typeof ArtSceneProps>, t) {
+    drawBackdrop(ctx, props.backdrop, t, props.seed);
+    props.items.forEach((it, i) => drawItem(ctx, it, t, i * 160));
+    // A soft dark band behind the text keeps it readable on bright pictures.
+    const g = ctx.createLinearGradient(0, 0, 0, 900);
+    g.addColorStop(0, "rgba(0,0,0,0.42)");
+    g.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, 900);
+    if (props.badge) {
+      const pop = easeOutBack((t - 350) / 450);
+      if (pop > 0) {
+        ctx.save();
+        ctx.translate(W / 2, 1620);
+        ctx.scale(pop, pop);
+        ctx.fillStyle = "#f2542d";
+        ctx.beginPath();
+        ctx.roundRect(-300, -120, 600, 240, 70);
+        ctx.fill();
+        ctx.fillStyle = "#ffffff";
+        const f = fitText(ctx, props.badge, 520, 190, 190, 60);
+        drawCentered(ctx, f, 0, 0);
+        ctx.restore();
+      }
+    }
+    if (!props.text) return;
+    const k = easeOutCubic((t + 150) / 450);
+    const fit = fitText(ctx, props.text, boxW, 520, props.big ? 124 : 96, 44);
+    ctx.save();
+    ctx.globalAlpha = k;
+    ctx.translate(0, (1 - k) * 40);
+    ctx.font = fontFor(fit.size);
+    ctx.lineJoin = "round";
+    ctx.lineWidth = Math.max(8, fit.size * 0.14);
+    ctx.strokeStyle = "rgba(0,0,0,0.6)";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    const rowH = fit.size * fit.lineHeight;
+    let y = SAFE.top + 260 - (fit.lines.length * rowH) / 2 + rowH / 2;
+    for (const line of fit.lines) {
+      ctx.strokeText(line, W / 2, y);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(line, W / 2, y);
+      y += rowH;
+    }
+    ctx.restore();
+  },
+};
+
+export const TEMPLATES: Record<TemplateId, TemplateDef> = { "art-scene": artScene, "hook-text": hookText, "big-number": bigNumber, "end-card": endCard, "text-card": textCard };
 
 /** Props with defaults filled in, or null if they don't fit the template. */
 export function parseCardProps(card: NonNullable<Scene["card"]>): Record<string, unknown> | null {

@@ -1,4 +1,5 @@
 import { LOCK_KEYS, type LockKey, type Scene } from "../model/types";
+import { BACKDROPS, BACKDROP_LABEL, ITEM_KINDS, ITEM_LABEL, layoutItems, type Backdrop, type ItemKind, type PlacedItem } from "../render/art";
 import { layout } from "../model/timeline";
 import { MIN_SCENE_MS, PHOTO_MAX_MS } from "../model/ops";
 import { useStore } from "../store/useStore";
@@ -42,6 +43,51 @@ function CardFields({ scene }: { scene: Scene }) {
   );
   return (
     <>
+      {card.template === "art-scene" && (
+        <>
+          <label className="field">
+            Words on the picture
+            <textarea value={str(props.text)} onChange={(e) => set({ text: e.target.value.slice(0, 160) })} />
+          </label>
+          <label className="field">
+            Backdrop
+            <select value={str(props.backdrop) || "abstract"} onChange={(e) => set({ backdrop: e.target.value as Backdrop })}>
+              {BACKDROPS.map((b) => (
+                <option key={b} value={b}>
+                  {BACKDROP_LABEL[b]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="field">
+            Characters and props (up to 4)
+            <div className="picks">
+              {ITEM_KINDS.map((k) => {
+                const current = (Array.isArray(props.items) ? (props.items as PlacedItem[]) : []).map((i) => i.kind);
+                const on = current.includes(k);
+                return (
+                  <button
+                    key={k}
+                    type="button"
+                    className={`pick ${on ? "on" : ""}`}
+                    aria-pressed={on}
+                    onClick={() => {
+                      const next: ItemKind[] = on ? current.filter((x) => x !== k) : [...current, k].slice(0, 4);
+                      set({ items: layoutItems(next) });
+                    }}
+                  >
+                    {ITEM_LABEL[k]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <label className="field">
+            Big number on the picture (optional)
+            <input value={str(props.badge)} onChange={(e) => set({ badge: e.target.value.slice(0, 24) || undefined })} />
+          </label>
+        </>
+      )}
       {card.template === "hook-text" && (
         <label className="field">
           On the card (one line per row, up to 4)
@@ -78,7 +124,7 @@ function CardFields({ scene }: { scene: Scene }) {
           </label>
         </>
       )}
-      {tone}
+      {card.template !== "art-scene" && tone}
     </>
   );
 }
