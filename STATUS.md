@@ -18,6 +18,8 @@ Run it: `npm install` then `npm run dev` and open http://localhost:5173 (Chrome 
 
 **NOT IN V1 (V2 or later):** realistic talking avatar, voice cloning, automatic posting for customers, payments and the "3 free" limit, paid AI video APIs, desktop installers, character cast, 3D.
 
+**Week-zero check 1 DONE (2026-10-22): export speed on the owner's PC** (Windows 11, i5-13450HX 10 cores, 15.7 GB RAM with about 5 GB free, Intel UHD + RTX 3050 6 GB laptop GPU, Chrome 155). The demo story (27.2 s, 816 frames of text cards + drawn stills + captions, no voice) exported in **6.5-8.6 s, about 100-126 frames per second** (one visible-window run took 13 s: 62 fps). Hardware and software H.264 encoding were both available. JS heap peaked about 12-18 MB (this does NOT count graphics/native memory), file 2.9 MB. So a 30 s flat-2D video takes roughly 7-10 s here. NOT yet measured: a second, weaker machine; heavier scenes (many layers, particles, character rig); low free-memory situations; Safari/Firefox. The earlier proposed gate (30 s export in 60 s or less) passes on this PC for flat scenes.
+
 **Gated, started in parallel:** Facebook scheduling (Reels to a Page: owner's own Page needs no Meta review; customers need Meta App Review + Business Verification). Plan: owner creates a Meta developer app + test Page; we build a small scheduling spike with a Cloudflare Worker. Also: Dodo Payments application, privacy/terms/refund pages for introcut.app, Google OAuth client for introcut.app.
 
 **Rules that still stand:** permissive licences only (no Kokoro/eSpeak, no VoiceStudio code, no non-commercial weights), clones only own voice/face with consent, AI label at export, no watermark removal, honest limits.
