@@ -60,7 +60,7 @@ const hookText: TemplateDef = {
     let y = boxCy - totalH / 2;
     fit.blocks.forEach((rows, i) => {
       const blockH = rows.length * rowH;
-      const k = easeOutBack((t - i * 220) / 420); // each line starts 0.22 s after the one above
+      const k = easeOutBack((t - i * 220 + 200) / 420); // the first line is already up on frame 1; each next line follows 0.22 s later
       if (k > 0) {
         ctx.save();
         ctx.globalAlpha = Math.min(1, k * 1.4);
@@ -117,7 +117,7 @@ const endCard: TemplateDef = {
   draw(ctx, props: z.infer<typeof EndCardProps>, t) {
     const p = background(ctx, props.tone);
     ctx.save();
-    ctx.globalAlpha = easeOutCubic(t / 500);
+    ctx.globalAlpha = easeOutCubic((t + 150) / 500);
     ctx.fillStyle = p.fg;
     drawCentered(ctx, fitText(ctx, props.headline, boxW, boxH * 0.6, 120, 44), W / 2, boxCy - 40);
     ctx.restore();
@@ -138,7 +138,7 @@ const textCard: TemplateDef = {
   schema: TextCardProps,
   draw(ctx, props: z.infer<typeof TextCardProps>, t) {
     const p = background(ctx, props.tone);
-    const k = easeOutCubic(t / 450);
+    const k = easeOutCubic((t + 150) / 450);
     ctx.save();
     ctx.globalAlpha = k;
     ctx.translate(0, (1 - k) * 50);

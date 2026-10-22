@@ -1,7 +1,16 @@
+import type { Scene } from "../model/types";
 import { useMemo, useState } from "react";
 import { layout, fmtTime } from "../model/timeline";
 import { useStore } from "../store/useStore";
 import { seekTo } from "./Preview";
+
+/** A short name for a card scene: the first words it shows. */
+function cardText(scene: Scene): string {
+  const pr = (scene.card?.props ?? {}) as Record<string, unknown>;
+  const raw = Array.isArray(pr.lines) ? String(pr.lines[0] ?? "") : String(pr.text ?? pr.value ?? pr.headline ?? "");
+  const t = raw.trim();
+  return t ? (t.length > 22 ? t.slice(0, 21) + "…" : t) : scene.beat || "scene";
+}
 
 export function Timeline() {
   const project = useStore((s) => s.project);
@@ -63,11 +72,11 @@ export function Timeline() {
                 setDragId(null);
                 setOverId(null);
               }}
-              title={`${item?.name ?? "scene"} · ${fmtTime(p.startMs)}–${fmtTime(p.endMs)} · drag to reorder`}
+              title={`${item?.name ?? cardText(p.scene)} · ${fmtTime(p.startMs)}–${fmtTime(p.endMs)} · drag to reorder`}
             >
               <span className="label">
                 {locked && "🔒 "}
-                {p.index + 1}. {item?.name ?? "scene"} <small>{(len / 1000).toFixed(1)}s</small>
+                {p.index + 1}. {item?.name ?? cardText(p.scene)} <small>{(len / 1000).toFixed(1)}s</small>
               </span>
             </button>
           );
