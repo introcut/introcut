@@ -23,6 +23,14 @@ export type Op =
   /** The AI's script and shot list: planned scenes (usually empty slots) plus one script line per scene. */
   /** The user (or AI) rewrites what a shot must show ("intent", locks "prompt") or the script line spoken in it ("line", locks "script"). */
   | { type: "setSceneText"; sceneId: string; field: "intent" | "line"; text: string }
+  /** Which built-in template draws this scene, and its text/number props. */
+  | { type: "setSceneCard"; sceneId: string; card: NonNullable<Scene["card"]> }
+  /** How long a scene without a clip lasts (cards and empty shots). */
+  | { type: "setSlotMs"; sceneId: string; ms: number }
+  /** Word timings for a scene's captions (usually estimated from the voice-over). */
+  | { type: "setCaptions"; sceneId: string; enabled: boolean; words: Scene["captions"]["words"] }
+  /** Attach (or detach with null) the audio file of a scene's spoken line. */
+  | { type: "setLineAudio"; sceneId: string; mediaId: string | null }
   | { type: "setPlan"; language: string; scenes: Scene[]; lines: Project["script"]["lines"] };
 
 export interface ApplyResult {
@@ -46,6 +54,8 @@ export function sceneFromMedia(item: MediaItem, isFirst: boolean, by: Actor = "u
   return makeScene({
     role: isFirst ? "hook" : "body",
     source: { mediaId: item.id, inMs: 0, outMs: defaultOutMs(item) },
+    // A photo is still, so give it a slow push-in; video already moves.
+    ...(item.kind === "photo" ? { framing: { mode: "auto-zoom" as const, x: 0.5, y: 0.5, zoom: 1 } } : {}),
     provenance: { by },
   });
 }
@@ -189,6 +199,58 @@ export function applyOp(project: Project, op: Op, actor: Actor = "user"): ApplyR
 
     case "setFormat":
       return done({ ...project, format: op.format });
+
+    case "setSceneCard": {
+      if (lockedBy("overlays")) return refuse(project, "locked: text");
+      const card = { template: op.card.template, props: op.card.props };
+      if (JSON.stringify(card) === JSON.stringify(scene!.card)) return refuse(project, "no change");
+      return done(
+        mapScene(project, op.sceneId, (s) => ({
+          ...s,
+          card,
+          locks: actor === "user" ? { ...s.locks, overlays: true } : s.locks,
+          provenance: { ...s.provenance, by: actor },
+        })),
+      );
+    }
+
+    case "setSlotMs": {
+      if (lockedBy("trim")) return refuse(project, "locked: trim");
+      if (scene!.source) return refuse(project, "scene has a clip: trim it instead");
+      const ms = clamp(Math.round(op.ms), MIN_SCENE_MS, PHOTO_MAX_MS);
+      if (ms === scene!.slot.targetMs) return refuse(project, "no change");
+      return done(
+        mapScene(project, op.sceneId, (s) => ({
+          ...s,
+          slot: { ...s.slot, targetMs: ms },
+          locks: actor === "user" ? { ...s.locks, trim: true } : s.locks,
+          provenance: { ...s.provenance, by: actor },
+        })),
+      );
+    }
+
+    case "setCaptions": {
+      if (lockedBy("captions")) return refuse(project, "locked: captions");
+      const words = op.words.slice(0, 400).filter((w) => w.text.trim() !== "" && w.endMs > w.startMs);
+      return done(
+        mapScene(project, op.sceneId, (s) => ({
+          ...s,
+          captions: { enabled: op.enabled, words },
+          locks: actor === "user" ? { ...s.locks, captions: true } : s.locks,
+        })),
+      );
+    }
+
+    case "setLineAudio": {
+      if (op.mediaId !== null && project.media.find((m) => m.id === op.mediaId)?.kind !== "audio") return refuse(project, "that file is not audio");
+      const existing = project.script.lines.find((l) => l.sceneId === op.sceneId);
+      const next = op.mediaId ?? undefined;
+      if ((existing?.audioMediaId ?? undefined) === next && (existing || next === undefined)) return refuse(project, "no change");
+      const lines = existing
+        ? project.script.lines.map((l) => (l.sceneId === op.sceneId ? { ...l, audioMediaId: next, voice: next ? ("tts" as const) : ("none" as const) } : l))
+        : [...project.script.lines, { id: `${op.sceneId}-line`, sceneId: op.sceneId, text: "", audioMediaId: next, voice: next ? ("tts" as const) : ("none" as const) }];
+      return done({ ...project, script: { ...project.script, lines } });
+    }
 
     case "setSceneText": {
       const lock: LockKey = op.field === "line" ? "script" : "prompt";

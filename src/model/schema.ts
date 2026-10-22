@@ -45,6 +45,10 @@ const LocksSchema = z.object(Object.fromEntries(LOCK_KEYS.map((k) => [k, z.liter
 
 const CaptionWordSchema = z.object({ text: z.string(), startMs: z.number(), endMs: z.number() });
 
+/** Built-in animated scene templates, drawn by Introcut itself (no clip needed). Props are checked by each template (src/render/templates.ts). */
+export const TEMPLATE_IDS = ["hook-text", "big-number", "end-card"] as const;
+export const TemplateIdSchema = z.enum(TEMPLATE_IDS);
+
 export const SceneSchema = z.object({
   id: z.string(),
   beat: z.string().default(""),
@@ -52,6 +56,8 @@ export const SceneSchema = z.object({
   type: z.enum(["generated", "user-media", "card", "filler", "avatar"]).default("user-media"),
   /** What this beat must show. */
   intent: z.string().default(""),
+  /** If set, the scene is drawn by a built-in template instead of a clip or photo. */
+  card: z.object({ template: TemplateIdSchema, props: z.record(z.string(), z.unknown()).default({}) }).optional(),
   slot: z
     .object({
       targetMs: z.number().default(0),
@@ -159,6 +165,8 @@ export const ProjectSchema = z.object({
             sceneId: z.string(),
             text: z.string(),
             roman: z.string().optional(),
+            /** The spoken line as an audio file in the media list (made by text-to-speech or recorded). */
+            audioMediaId: z.string().optional(),
             voice: z.enum(["generator", "tts", "recorded", "cloned", "none"]).default("none"),
           }),
         )
@@ -197,6 +205,7 @@ export type MediaProbe = z.infer<typeof MediaProbeSchema>;
 export type MediaItem = z.infer<typeof MediaItemSchema>;
 export type LockKey = z.infer<typeof LockKeySchema>;
 export type Scene = z.infer<typeof SceneSchema>;
+export type TemplateId = z.infer<typeof TemplateIdSchema>;
 export type Project = z.infer<typeof ProjectSchema>;
 
 export function emptyProject(): Project {

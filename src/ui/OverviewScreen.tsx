@@ -1,6 +1,7 @@
 import { formatName } from "../ai/formats";
 import { useStore } from "../store/useStore";
 import { useBrain } from "./brainStore";
+import { ExportPanel } from "./ExportPanel";
 import { MediaBin } from "./MediaBin";
 import { TopBar } from "./TopBar";
 import { useUi } from "./uiStore";
@@ -173,7 +174,7 @@ export function OverviewScreen() {
 
         <section className="fsec">
           <h2>Final video</h2>
-          <p className="mute">Not made yet. Exporting the finished video is a later step; until then you can save the project file from Export.</p>
+          <ExportPanel />
         </section>
       </div>
     </div>

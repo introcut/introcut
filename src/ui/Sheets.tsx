@@ -3,6 +3,7 @@ import { useAuth } from "../auth/session";
 import { useStore } from "../store/useStore";
 import { AiSettings } from "./AiSettings";
 import { Avatar } from "./Avatar";
+import { ExportPanel } from "./ExportPanel";
 import { fmtBytes } from "./format";
 import { SceneInspector } from "./SceneInspector";
 import { useUi, type SheetName } from "./uiStore";
@@ -26,8 +27,10 @@ function ExportSheet() {
   return (
     <>
       <SheetHead title="Export" />
-      <div className="callout">
-        <b>Video export isn't built yet.</b> Soon you'll get a ready-to-post 1080×1920 MP4 here, with a title, hashtags and the "AI-generated" reminder.
+      <div>
+        <div className="lab">Video</div>
+        <p className="mute">Makes a 1080×1920 MP4 on this computer. Nothing is uploaded. Works in Chrome and Edge on a computer.</p>
+        <ExportPanel />
       </div>
       <div>
         <div className="lab">Project file</div>

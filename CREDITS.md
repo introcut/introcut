@@ -11,6 +11,9 @@ Rule: nothing is added to Introcut without its license listed here, in the same 
 | TypeScript | Type checking | Apache-2.0 |
 | Zod | Project schema validation | MIT |
 | Vitest | Unit tests (dev only) | MIT |
+| Mediabunny | Writes the MP4 and encodes/decodes video and audio with the browser's WebCodecs (used unmodified) | **MPL-2.0** (checked on npm, v1.62.0) |
+| Inter (`@fontsource/inter`) | Latin text in videos (bundled woff2 files) | SIL OFL 1.1 (checked on npm) |
+| Noto Sans Devanagari (`@fontsource/noto-sans-devanagari`) | Hindi/Nepali text in videos (bundled woff2 files) | SIL OFL 1.1 (checked on npm) |
 
 ## Design
 | Name | Purpose | License / source |
@@ -26,7 +29,6 @@ Rule: nothing is added to Introcut without its license listed here, in the same 
 | Name | Purpose | License |
 |---|---|---|
 | Vite, React, TypeScript, Zustand, Zod | App | MIT |
-| Mediabunny | Decode/mux/encode (used unmodified) | **MPL-2.0** |
 | WebLLM + Qwen3 (dense sizes) | Local LLM | Apache-2.0 |
 | transformers.js | Whisper/aligner, SigLIP/CLIP, CLAP in the browser | Apache-2.0 |
 | Whisper | Speech recognition | MIT |
@@ -34,7 +36,6 @@ Rule: nothing is added to Introcut without its license listed here, in the same 
 | kokoro-js / Kokoro | Browser TTS | Apache-2.0 (verify repo) |
 | Chatterbox | Voice clone on user's own free GPU | MIT |
 | MuseTalk | Avatar on user's own free Hugging Face Space | MIT code; weights commercial use per README (verify) |
-| Noto Sans Devanagari | Hindi/Nepali captions | SIL OFL 1.1 |
 | vite-plugin-pwa | PWA | MIT |
 | CLAP weights (`laion/clap-htsat-unfused`) | Sound-effect matching | verify |
 | Nepali TTS model (Matcha-TTS Nepali, etc.) | Nepali voice | verify |

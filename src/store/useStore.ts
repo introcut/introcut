@@ -3,7 +3,7 @@ import { applyOp, sceneFromMedia, type Actor, type ApplyResult, type Op } from "
 import { emptyProject, ProjectSchema, type MediaOrigin, type Project } from "../model/types";
 import { repairProject } from "../model/validate";
 import { ingestFile } from "../media/ingest";
-import { makeDemoFiles } from "../media/demo";
+import { buildStoryScenes, makeStoryStills, STORY_IDEA, STORY_NAME } from "../media/storyDemo";
 import * as storage from "../storage/opfs";
 import { flushPending } from "../storage/pending";
 import { emptyHistory, record, redo as redoHistory, undo as undoHistory, type History } from "./history";
@@ -372,9 +372,17 @@ export const useStore = create<State>()((set, get) => {
       get().dispatchMany(ops);
     },
 
+    /** A made-up six-scene story (text cards, drawn stills, captions, script lines) to try the whole pipeline without files. */
     loadDemo: async () => {
-      await get().addFiles(await makeDemoFiles());
-      get().addAllToTimeline();
+      await get().addFiles(await makeStoryStills());
+      const { project } = get();
+      const byName = (n: string) => project.media.find((m) => m.name === n)?.id;
+      const ids = [byName("demo-dry-field.png"), byName("demo-night-river.png"), byName("demo-first-rain.png")];
+      if (ids.some((x) => !x)) return pushError("The demo pictures could not be added.");
+      const { scenes, lines } = buildStoryScenes(ids as [string, string, string]);
+      const ops: Op[] = [{ type: "setPlan", language: "en", scenes, lines }];
+      if (project.brief.idea.trim() === "") ops.push({ type: "setIdea", idea: STORY_IDEA }, { type: "renameProject", name: STORY_NAME });
+      get().dispatchMany(ops, { actor: "ai" });
     },
 
     importProjectFile: async (file) => {

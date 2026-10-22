@@ -266,3 +266,10 @@ b.s-ok { color: var(--ok); } b.s-warn { color: var(--warn); } b.s-bad { color: v
 .project-card > * { min-width: 0; }
 .project-card { overflow: hidden; }
 .pc-idea { overflow-wrap: anywhere; }
+
+/* --- Export panel ------------------------------------------------------------------------ */
+.export-panel { display: grid; gap: 12px; justify-items: start; }
+.export-panel .progress, .export-panel .done { width: 100%; display: grid; gap: 8px; }
+.export-panel p { margin: 0; }
+.problems { margin: 0; padding-left: 18px; color: var(--warn); font-size: 14px; }
+.export-panel .bar span { background: var(--accent); transition: width 0.15s; }

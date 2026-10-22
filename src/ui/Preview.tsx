@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { layout, fmtTime } from "../model/timeline";
+import { ensureFonts } from "../render/fonts";
 import { Player } from "../render/Player";
 import { useStore } from "../store/useStore";
 
@@ -30,6 +31,7 @@ export function Preview() {
     );
     player = p;
     p.refresh();
+    void ensureFonts().then(() => player === p && p.refresh()); // text cards need the bundled fonts
     return () => {
       p.destroy();
       if (player === p) player = null;

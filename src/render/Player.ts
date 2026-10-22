@@ -1,24 +1,15 @@
 import { layout, sceneAt, type PlacedScene } from "../model/timeline";
 import type { MediaItem, Project } from "../model/types";
+import { renderFrame, type RenderAssets } from "./renderFrame";
 
 interface Source {
   project: Project;
   assets: Record<string, { url: string }>;
 }
 
-/** Draw `src` filling the whole canvas, cropping the overflow ("cover"). This is the center crop used to make horizontal footage vertical. */
-export function drawCover(ctx: CanvasRenderingContext2D, src: CanvasImageSource, sw: number, sh: number) {
-  const { width: cw, height: ch } = ctx.canvas;
-  const scale = Math.max(cw / sw, ch / sh);
-  const dw = sw * scale;
-  const dh = sh * scale;
-  ctx.drawImage(src, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
-}
-
 /**
  * Plays the project's scenes back to back onto a canvas.
- * Each frame: find the scene at the playhead, line up its video, draw it center-cropped to 9:16.
- * (Milestone 9 grows this into the shared renderFrame used for export too.)
+ * Each frame: find the scene at the playhead, line up its video, then hand the drawing to renderFrame (shared with export).
  */
 export class Player {
   private ctx: CanvasRenderingContext2D;
@@ -31,7 +22,7 @@ export class Player {
   private images = new Map<string, HTMLImageElement>();
 
   constructor(
-    private canvas: HTMLCanvasElement,
+    canvas: HTMLCanvasElement,
     private getSource: () => Source,
     private onTime: (tMs: number, playing: boolean) => void,
   ) {
@@ -140,36 +131,26 @@ export class Player {
     return null;
   }
 
+  private assets: RenderAssets = {
+    media: (mediaId) => {
+      const item = this.getSource().project.media.find((m) => m.id === mediaId);
+      const el = item && this.mediaEl(item);
+      if (!el) return null;
+      if (el instanceof HTMLVideoElement) return el.readyState >= 2 && el.videoWidth > 0 ? { source: el, width: el.videoWidth, height: el.videoHeight } : null;
+      return el.complete && el.naturalWidth > 0 ? { source: el, width: el.naturalWidth, height: el.naturalHeight } : null;
+    },
+  };
+
   private renderFrame() {
-    const { ctx, canvas } = this;
     const { project } = this.getSource();
     const { placed } = layout(project);
-    ctx.fillStyle = "#000";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
+    // Line the current clip's <video> up first, so renderFrame can just draw whatever it shows.
     const p = sceneAt(placed, this.t);
-    if (!p) {
-      this.drawHint("Add media, then press \"Add to timeline\"");
-      return;
-    }
-    const item = project.media.find((m) => m.id === p.scene.source?.mediaId);
-    if (!item) {
-      if (!p.scene.source) this.drawHint(`Shot ${p.index + 1}: needs a clip`);
-      return;
-    }
-    const el = this.mediaEl(item);
-    if (!el) {
-      this.drawHint(`Missing file: ${item.name}`);
-      return;
-    }
-
-    if (el instanceof HTMLVideoElement) {
-      this.syncVideo(el, item.id, p);
-      if (el.readyState >= 2) drawCover(ctx, el, el.videoWidth, el.videoHeight);
-    } else if (el.complete && el.naturalWidth > 0) {
-      this.stopOtherVideo(null);
-      drawCover(ctx, el, el.naturalWidth, el.naturalHeight);
-    }
+    const item = p && project.media.find((m) => m.id === p.scene.source?.mediaId);
+    const el = p && !p.scene.card && item ? this.mediaEl(item) : null;
+    if (p && el instanceof HTMLVideoElement) this.syncVideo(el, item!.id, p);
+    else this.stopOtherVideo(null);
+    renderFrame(this.ctx, project, placed, this.t, this.assets);
   }
 
   private stopOtherVideo(keepId: string | null) {
@@ -189,13 +170,5 @@ export class Player {
       el.pause();
       if (drift > 0.04) el.currentTime = target;
     }
-  }
-
-  private drawHint(text: string) {
-    const { ctx, canvas } = this;
-    ctx.fillStyle = "#6b7280";
-    ctx.textAlign = "center";
-    ctx.font = `${Math.round(canvas.width / 18)}px system-ui, sans-serif`;
-    ctx.fillText(text, canvas.width / 2, canvas.height / 2, canvas.width * 0.85);
   }
 }
