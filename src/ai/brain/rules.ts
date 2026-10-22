@@ -1,7 +1,7 @@
 // Basic mode: no AI. It can't judge or write, so it doesn't pretend to. It picks a format by keywords, asks what's obviously
-// missing, and lays out an empty shot list from the format's beats for the user to fill in.
-import { CUSTOM_FORMAT_ID, FORMATS, getFormat } from "../formats";
-import { makeScene } from "../../model/types";
+// missing, and then builds the video from the person's OWN words (it cannot write for them).
+import { CUSTOM_FORMAT_ID, FORMATS } from "../formats";
+import { compileShots, shotsFromYourWords, type ShotInput } from "../compile";
 import type { Assessment, Brain, BrainInput, FormatPick, PlanDraft } from "./types";
 
 function rank(idea: string, avoid: string[]): FormatPick[] {
@@ -39,25 +39,23 @@ export const rulesBrain: Brain = {
     };
   },
 
-  async plan(input: BrainInput, format: FormatPick): Promise<PlanDraft> {
-    const f = getFormat(format.id) ?? FORMATS[0];
-    const totalMs = input.targetSec * 1000;
-    const scenes = f.beats.map((b, i) =>
-      makeScene({
-        beat: b.kind,
-        role: b.role,
-        type: "generated",
-        intent: `Beat ${i + 1}: ${b.kind.replace(/-/g, " ")}. Describe what we should see here.`,
-        slot: { targetMs: Math.round(b.share * totalMs), status: "empty", flags: [] },
-        provenance: { by: "ai", reason: "basic-mode skeleton" },
-      }),
-    );
-    // Matching your files to beats needs the AI (or Milestone 5), so basic mode leaves that to you.
+  async plan(input: BrainInput): Promise<PlanDraft> {
+    // Basic mode can't write a script, so it uses the person's own words: the idea plus any answers they gave.
+    const texts = [input.idea, ...input.qa.map((x) => x.a).filter((x) => x.trim())];
+    let shots: ShotInput[] = shotsFromYourWords(texts);
+    // Their photos (not clips) go under the middle lines, in order; the first and last lines stay cards.
+    const photos = input.media.filter((m) => m.kind === "photo");
+    let next = 0;
+    shots = shots.map((s, i) => (i > 0 && i < shots.length - 1 && next < photos.length ? { ...s, media: { id: photos[next++].id, kind: "photo" as const } } : s));
+    const { scenes, lines } = compileShots(shots);
     return {
       language: input.language,
       scenes,
-      lines: scenes.map((s) => ({ id: crypto.randomUUID(), sceneId: s.id, text: "", voice: "none" as const })),
-      note: "Basic mode made an empty shot list from the format. Write each line yourself, or connect your own AI (account menu, bottom left) and run this again.",
+      lines,
+      note:
+        shots.length < 3
+          ? "Basic mode used your own words, and there were only a few, so the video is short. Write more of your story, or connect your own AI (account menu, bottom left) to have it written for you."
+          : "Basic mode used your own words: each sentence became a card. Connect your own AI (account menu, bottom left) to have the script written for you.",
     };
   },
 };

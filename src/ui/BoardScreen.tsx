@@ -15,7 +15,7 @@ function useNext() {
   const { go } = useUi.getState();
   const { addAllToTimeline, loadDemo } = useStore.getState();
 
-  const empty = scenes.filter((s) => !s.source).length;
+  const empty = scenes.filter((s) => !s.source && !s.card).length;
   if (empty > 0)
     return {
       title: `Next: ${empty} shot${empty === 1 ? " needs" : "s need"} a clip.`,
@@ -23,13 +23,13 @@ function useNext() {
       label: "Add material",
       run: pickFiles,
     };
-  if (media.length === 0)
+  if (media.length === 0 && scenes.length === 0)
     return { title: "Next: add your first clip or photo.", sub: "Choose files, or try the demo. You can also record your screen from Overview.", label: "Add material", run: pickFiles, alt: { label: "Try the demo", run: () => void loadDemo() } };
   if (scenes.length === 0)
     return { title: "Next: put your material on the board.", sub: "Each clip or photo becomes a scene you can trim and reorder.", label: "Add all to the board", run: addAllToTimeline };
   if (media.some((m) => !assets[m.id]))
     return { title: "Next: a file is missing.", sub: "Add the original file again under \"What you sent\" and it re-links.", label: "Open Overview", run: () => go("overview") };
-  return { title: "Next: check the timeline.", sub: "Preview it, trim scenes and fix the order.", label: "Open timeline", run: () => go("timeline") };
+  return { title: "Next: watch it, fix any words, then make the video.", sub: "Open the Timeline to preview. Click a card to edit its words. Export, then Make the video.", label: "Open timeline", run: () => go("timeline") };
 }
 
 export function BoardScreen() {
@@ -82,7 +82,7 @@ export function BoardScreen() {
             return (
               <div
                 key={p.scene.id}
-                className={`scene-card ${p.scene.source ? "" : "empty"} ${isSel ? "sel" : ""} ${dragId === p.scene.id ? "dragging" : ""} ${overId === p.scene.id && dragId !== p.scene.id ? "drop-target" : ""}`}
+                className={`scene-card ${p.scene.source || p.scene.card ? "" : "empty"} ${isSel ? "sel" : ""} ${dragId === p.scene.id ? "dragging" : ""} ${overId === p.scene.id && dragId !== p.scene.id ? "drop-target" : ""}`}
                 draggable
                 onDragStart={(e) => {
                   setDragId(p.scene.id);
@@ -114,7 +114,7 @@ export function BoardScreen() {
                   aria-label={`Open scene ${p.index + 1}`}
                 >
                   <span className="n">{p.index + 1}</span>
-                  {!thumb && <span className="ph">{!p.scene.source ? "needs a clip" : item?.kind === "video" ? "video" : "no preview"}</span>}
+                  {!thumb && <span className="ph">{p.scene.card ? "text card" : !p.scene.source ? "needs a clip" : item?.kind === "video" ? "video" : "no preview"}</span>}
                 </button>
                 <div className="meta">
                   <span className="pill">{((p.endMs - p.startMs) / 1000).toFixed(1)} s</span>
@@ -124,7 +124,7 @@ export function BoardScreen() {
                     </span>
                   )}
                   <div className="cap-name">{item?.name ?? (p.scene.beat ? p.scene.beat.replace(/-/g, " ") : "scene")}</div>
-                  {p.scene.intent && !p.scene.source && <div className="intent">{p.scene.intent}</div>}
+                  {p.scene.intent && !p.scene.source && !p.scene.card && <div className="intent">{p.scene.intent}</div>}
                   {lineOf(p.scene.id) && <div className="line">“{lineOf(p.scene.id)}”</div>}
                 </div>
               </div>

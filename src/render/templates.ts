@@ -19,6 +19,7 @@ const PALETTE = {
 
 const HookTextProps = z.object({ lines: z.array(z.string().max(120)).min(1).max(4).default(["…"]), tone: Tone });
 const BigNumberProps = z.object({ value: z.string().max(24).default("0"), label: z.string().max(140).default(""), tone: Tone });
+const TextCardProps = z.object({ text: z.string().max(160).default("…"), tone: Tone });
 const EndCardProps = z.object({ headline: z.string().max(120).default(""), sub: z.string().max(140).optional(), tone: Tone });
 
 interface TemplateDef {
@@ -130,7 +131,24 @@ const endCard: TemplateDef = {
   },
 };
 
-export const TEMPLATES: Record<TemplateId, TemplateDef> = { "hook-text": hookText, "big-number": bigNumber, "end-card": endCard };
+const textCard: TemplateDef = {
+  name: "Statement card",
+  description: "One sentence, large and centred. The default card for any line of the story.",
+  example: { text: "Ram's seedlings stood in cracked, dry mud.", tone: "paper" },
+  schema: TextCardProps,
+  draw(ctx, props: z.infer<typeof TextCardProps>, t) {
+    const p = background(ctx, props.tone);
+    const k = easeOutCubic(t / 450);
+    ctx.save();
+    ctx.globalAlpha = k;
+    ctx.translate(0, (1 - k) * 50);
+    ctx.fillStyle = p.fg;
+    drawCentered(ctx, fitText(ctx, props.text, boxW, boxH * 0.8, 112, 44), W / 2, boxCy);
+    ctx.restore();
+  },
+};
+
+export const TEMPLATES: Record<TemplateId, TemplateDef> = { "hook-text": hookText, "big-number": bigNumber, "end-card": endCard, "text-card": textCard };
 
 /** Props with defaults filled in, or null if they don't fit the template. */
 export function parseCardProps(card: NonNullable<Scene["card"]>): Record<string, unknown> | null {

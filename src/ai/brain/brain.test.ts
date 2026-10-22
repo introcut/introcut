@@ -80,12 +80,12 @@ describe("llmBrain.assess", () => {
 });
 
 describe("llmBrain.plan", () => {
-  it("builds scenes: matches the user's file by name, clamps lengths, keeps lines", async () => {
+  it("builds scenes: cards for the words, the user's file where it fits, keeps every line", async () => {
     const plan = await llmBrain(fake(PLAN)).plan(input(), { id: "how-to", why: "" });
     expect(plan.scenes).toHaveLength(3);
-    expect(plan.scenes[0]).toMatchObject({ type: "generated", role: "hook", slot: { targetMs: 4000, status: "empty" } });
-    expect(plan.scenes[1]).toMatchObject({ type: "user-media", source: { mediaId: "m1", inMs: 0, outMs: 6000 }, slot: { targetMs: 8000, status: "filled" } });
-    expect(plan.scenes[2].type).toBe("generated"); // a user-media shot with no matching file becomes a generated one
+    expect(plan.scenes[0]).toMatchObject({ role: "hook", type: "card", card: { template: "hook-text" }, slot: { targetMs: 4000, status: "filled" } });
+    expect(plan.scenes[1]).toMatchObject({ type: "user-media", source: { mediaId: "m1", inMs: 0, outMs: 6000 }, slot: { status: "filled" } });
+    expect(plan.scenes[2]).toMatchObject({ role: "cta", type: "card", card: { template: "end-card" } });
     expect(plan.scenes[2].slot.targetMs).toBe(1500);
     expect(plan.lines.map((l) => l.text)).toEqual(["Namaste", "", "Follow"]);
     expect(plan.lines[0].roman).toBe("Namaste");
@@ -112,12 +112,25 @@ describe("rulesBrain", () => {
     const answered = await rulesBrain.assess({ ...input(), idea: "garlic", qa: short.missing.map((m) => ({ q: m.ask, a: "farmers" })) });
     expect(answered.missing).toHaveLength(0);
   });
-  it("lays out an empty shot list that adds up to the target length", async () => {
-    const plan = await rulesBrain.plan({ ...input(), targetSec: 30 }, { id: "three-things", why: "" });
-    expect(plan.scenes.every((s) => s.slot.status === "empty")).toBe(true);
-    const total = plan.scenes.reduce((n, s) => n + s.slot.targetMs, 0);
-    expect(Math.abs(total - 30_000)).toBeLessThan(100);
-    expect(plan.note).toBeTruthy();
+  it("builds a watchable video from the person's own words, with no AI", async () => {
+    const idea = "Every farmer in the valley knew the rain was late. Ram's seedlings stood in dry mud. 3 days was all they could survive. He carried water all night. By morning the first rain fell.";
+    const plan = await rulesBrain.plan({ ...input(), idea, media: [] }, { id: "mini-story", why: "" });
+    expect(plan.scenes).toHaveLength(5);
+    expect(plan.scenes.every((sc) => sc.card && sc.slot.status === "filled")).toBe(true);
+    expect(plan.scenes[0].card?.template).toBe("hook-text");
+    expect(plan.scenes[2].card?.template).toBe("big-number");
+    expect(plan.scenes[4].card?.template).toBe("end-card");
+    expect(plan.lines.map((l) => l.text)[1]).toBe("Ram's seedlings stood in dry mud.");
+    expect(plan.note).toMatch(/your own words/);
+  });
+  it("puts the person's own photos under the middle lines and says when the idea is too short", async () => {
+    const idea = "A. B. C. D. E.";
+    const media = [{ id: "p1", name: "a.png", kind: "photo" as const, origin: "unknown" }];
+    const plan = await rulesBrain.plan({ ...input(), idea, media }, { id: "mini-story", why: "" });
+    expect(plan.scenes.filter((sc) => sc.source).map((sc) => sc.source!.mediaId)).toEqual(["p1"]);
+    expect(plan.scenes[1].captions.enabled).toBe(true);
+    const short = await rulesBrain.plan({ ...input(), idea: "A monkey plants garlic", media: [] }, { id: "mini-story", why: "" });
+    expect(short.note).toMatch(/only a few/);
   });
 });
 

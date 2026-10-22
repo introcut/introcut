@@ -21,7 +21,7 @@ export function OverviewScreen() {
   const { go } = useUi.getState();
   const { readiness, format } = project;
   const shots = project.scenes;
-  const filled = shots.filter((s) => s.source);
+  const filled = shots.filter((s) => s.source || s.card);
   const lineOf = (sceneId: string) => project.script.lines.find((l) => l.sceneId === sceneId)?.text ?? "";
   const scripted = shots.filter((s) => lineOf(s.id).trim() !== "");
 
@@ -162,9 +162,9 @@ export function OverviewScreen() {
               {shots.map((s, i) => {
                 const thumb = s.source ? assets[s.source.mediaId]?.thumb : undefined;
                 return (
-                  <button key={s.id} className={`clip ${s.source ? "" : "empty"}`} style={thumb ? { backgroundImage: `url(${thumb})` } : undefined} onClick={() => go("board")} aria-label={`Shot ${i + 1}`}>
+                  <button key={s.id} className={`clip ${s.source || s.card ? "" : "empty"}`} style={thumb ? { backgroundImage: `url(${thumb})` } : undefined} onClick={() => go("board")} aria-label={`Shot ${i + 1}`}>
                     <span className="n">{i + 1}</span>
-                    {!s.source && <span className="ph">needs a clip</span>}
+                    {s.card ? <span className="ph">card</span> : !s.source && <span className="ph">needs a clip</span>}
                   </button>
                 );
               })}

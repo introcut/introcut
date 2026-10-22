@@ -4,7 +4,7 @@ import { z } from "zod";
 import { CUSTOM_FORMAT_ID, FORMATS, getFormat } from "../formats";
 import { extractJson } from "../llm/json";
 import { LlmError, type ChatMessage, type LlmProvider } from "../llm/types";
-import { makeScene } from "../../model/types";
+import { compileShots, type ShotInput } from "../compile";
 import type { Assessment, Brain, BrainInput, FormatPick, Language, PlanDraft } from "./types";
 
 const score = z.coerce.number().transform((n) => Math.min(100, Math.max(0, Math.round(n))));
@@ -148,24 +148,22 @@ export function llmBrain(provider: LlmProvider): Brain {
     async plan(input, format, signal): Promise<PlanDraft> {
       const r = await askJson(provider, planPrompt(input, format), PlanSchema, signal);
       const byName = new Map(input.media.filter((m) => m.kind !== "audio").map((m) => [m.name.toLowerCase(), m]));
-      const scenes = r.shots.slice(0, 12).map((s) => {
+      const shots: ShotInput[] = r.shots.slice(0, 12).map((s) => {
         const file = s.media ? byName.get(s.media.toLowerCase()) : undefined;
-        const ms = Math.round(Math.min(8, Math.max(1.5, s.seconds)) * 1000);
-        const outMs = file ? Math.min(ms, file.durationMs ?? ms) : 0;
-        return makeScene({
+        return {
           beat: s.beat,
           role: s.role,
-          type: file ? "user-media" : s.type === "user-media" ? "generated" : s.type,
+          line: s.line,
           intent: s.intent,
-          slot: { targetMs: ms, status: file ? "filled" : "empty", flags: [] },
-          source: file ? { mediaId: file.id, inMs: 0, outMs: Math.max(outMs, 500) } : undefined,
-          provenance: { by: "ai", reason: "written by the AI from your idea" },
-        });
+          seconds: s.seconds,
+          media: file ? { id: file.id, kind: file.kind as "video" | "photo", durationMs: file.durationMs } : undefined,
+        };
       });
+      const { scenes, lines } = compileShots(shots);
       return {
         language: input.language,
         scenes,
-        lines: scenes.map((sc, i) => ({ id: crypto.randomUUID(), sceneId: sc.id, text: r.shots[i].line, roman: r.shots[i].roman || undefined, voice: "none" as const })),
+        lines: lines.map((ln, i) => ({ ...ln, roman: r.shots[i].roman || undefined })),
       };
     },
   };

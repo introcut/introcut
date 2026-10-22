@@ -1,4 +1,4 @@
-import { LOCK_KEYS, type LockKey } from "../model/types";
+import { LOCK_KEYS, type LockKey, type Scene } from "../model/types";
 import { layout } from "../model/timeline";
 import { MIN_SCENE_MS, PHOTO_MAX_MS } from "../model/ops";
 import { useStore } from "../store/useStore";
@@ -18,6 +18,70 @@ const LOCK_LABEL: Record<LockKey, string> = {
 };
 
 const sec = (ms: number) => (ms / 1000).toFixed(2);
+
+
+type Props = Record<string, unknown>;
+const str = (v: unknown) => (typeof v === "string" ? v : "");
+
+/** Edit the words and look of a built-in card (what is shown on screen). */
+function CardFields({ scene }: { scene: Scene }) {
+  const { dispatch } = useStore.getState();
+  const card = scene.card;
+  if (!card) return null;
+  const props = card.props as Props;
+  const set = (patch: Props) => dispatch({ type: "setSceneCard", sceneId: scene.id, card: { template: card.template, props: { ...props, ...patch } } }, { coalesce: "card:" + scene.id });
+  const tone = (
+    <label className="field">
+      Colour
+      <select value={str(props.tone) || "ink"} onChange={(e) => set({ tone: e.target.value })}>
+        <option value="ink">Dark</option>
+        <option value="paper">Light</option>
+        <option value="accent">Orange</option>
+      </select>
+    </label>
+  );
+  return (
+    <>
+      {card.template === "hook-text" && (
+        <label className="field">
+          On the card (one line per row, up to 4)
+          <textarea value={Array.isArray(props.lines) ? (props.lines as string[]).join("\n") : ""} onChange={(e) => set({ lines: e.target.value.split("\n").slice(0, 4) })} />
+        </label>
+      )}
+      {card.template === "text-card" && (
+        <label className="field">
+          On the card
+          <textarea value={str(props.text)} onChange={(e) => set({ text: e.target.value.slice(0, 160) })} />
+        </label>
+      )}
+      {card.template === "big-number" && (
+        <>
+          <label className="field">
+            Big number or short phrase
+            <input value={str(props.value)} onChange={(e) => set({ value: e.target.value.slice(0, 24) })} />
+          </label>
+          <label className="field">
+            Under it
+            <textarea value={str(props.label)} onChange={(e) => set({ label: e.target.value.slice(0, 140) })} />
+          </label>
+        </>
+      )}
+      {card.template === "end-card" && (
+        <>
+          <label className="field">
+            Closing line
+            <textarea value={str(props.headline)} onChange={(e) => set({ headline: e.target.value.slice(0, 120) })} />
+          </label>
+          <label className="field">
+            Small line under it (optional)
+            <input value={str(props.sub)} onChange={(e) => set({ sub: e.target.value.slice(0, 140) || undefined })} />
+          </label>
+        </>
+      )}
+      {tone}
+    </>
+  );
+}
 
 export function SceneInspector() {
   const project = useStore((s) => s.project);
@@ -55,6 +119,7 @@ export function SceneInspector() {
         <span className="tag">{scene.provenance.by === "user" ? "edited by you" : "made by AI"}</span>
       </div>
 
+      <CardFields scene={scene} />
       <label className="field">
         What this shot shows
         <textarea

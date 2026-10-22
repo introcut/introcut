@@ -95,7 +95,7 @@ export const useBrain = create<BrainState>()((set, get) => ({
       const r = dispatch({ type: "setPlan", language: draft.language, scenes: draft.scenes, lines: draft.lines }, { actor: "ai" });
       if (!r.changed) throw new Error(r.reason ?? "The plan couldn't be added.");
       set({ planNote: draft.note ?? null });
-      useUi.getState().go("board");
+      useUi.getState().go("timeline");
     } catch (e) {
       if (!(e instanceof LlmError && e.kind === "aborted")) set({ error: messageOf(e) });
     } finally {

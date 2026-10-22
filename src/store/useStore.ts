@@ -126,7 +126,7 @@ export function summarize(p: Project): ProjectSummary {
     idea: p.brief.idea,
     media: p.media.length,
     shots: p.scenes.length,
-    filled: p.scenes.filter((x) => x.source).length,
+    filled: p.scenes.filter((x) => x.source || x.card).length,
     scriptLines: p.script.lines.filter((l) => l.text.trim() !== "").length,
     checked: !!p.readiness,
     formatId: p.format?.id,

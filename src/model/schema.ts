@@ -46,7 +46,7 @@ const LocksSchema = z.object(Object.fromEntries(LOCK_KEYS.map((k) => [k, z.liter
 const CaptionWordSchema = z.object({ text: z.string(), startMs: z.number(), endMs: z.number() });
 
 /** Built-in animated scene templates, drawn by Introcut itself (no clip needed). Props are checked by each template (src/render/templates.ts). */
-export const TEMPLATE_IDS = ["hook-text", "big-number", "end-card"] as const;
+export const TEMPLATE_IDS = ["hook-text", "big-number", "end-card", "text-card"] as const;
 export const TemplateIdSchema = z.enum(TEMPLATE_IDS);
 
 export const SceneSchema = z.object({
