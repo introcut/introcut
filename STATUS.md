@@ -1,11 +1,32 @@
 # Status
 
-_Last updated: 2026-10-19. Update this file whenever something changes._
+_Last updated: 2026-10-22. Update this file whenever something changes._
 
 ## Where we are
 Planning is done. **Milestones 1 (editor shell) and 2 (project core) are built.** **Milestone 3 (brain + brief) is partly built (M3a, below).** Next: test M3a with a real AI key, then the on-device model and the Nepali/Hindi gate G2.
 
 Run it: `npm install` then `npm run dev` and open http://localhost:5173 (Chrome or Edge). Unit tests: `npm test`.
+
+## V1 SCOPE (locked 2026-10-22, owner-confirmed). Anything not listed here waits for V2.
+**V1 in one sentence:** a first-time creator types an idea and gets a finished, ready-to-post 30-second video, without showing their face and without knowing how to edit. Runs in the browser at introcut.app; media stays on the device.
+
+**IN V1**
+1. **Make the video by code** (idea -> checked script -> scene cards drawn by our own renderer -> MP4). Voice by recording, upload, or Google/Azure voice with the user's OWN key. Procedural music and sound effects. Aligned captions. (Core built; see M-Slice below.)
+2. **Merge and finish clips made in free AI tools:** import, trim bad frames, match size/loudness/colour, transitions, take picker with plain-language flags (the user decides; we cannot detect bad hands/faces), last-frame helper. Never remove or hide watermarks.
+3. **Presenter bubble:** the user's photo in a bubble, mouth moves with voice loudness. Labelled as animated, not lip-synced. Consent step + AI-generated label.
+4. **Post pack (channel management without auto-posting):** per-platform title/description/hashtags, size presets, posting checklist with links, plan board, "mark as posted", manual analytics, calendar reminders.
+
+**NOT IN V1 (V2 or later):** realistic talking avatar, voice cloning, automatic posting for customers, payments and the "3 free" limit, paid AI video APIs, desktop installers, character cast, 3D.
+
+**Gated, started in parallel:** Facebook scheduling (Reels to a Page: owner's own Page needs no Meta review; customers need Meta App Review + Business Verification). Plan: owner creates a Meta developer app + test Page; we build a small scheduling spike with a Cloudflare Worker. Also: Dodo Payments application, privacy/terms/refund pages for introcut.app, Google OAuth client for introcut.app.
+
+**Rules that still stand:** permissive licences only (no Kokoro/eSpeak, no VoiceStudio code, no non-commercial weights), clones only own voice/face with consent, AI label at export, no watermark removal, honest limits.
+
+**Owner decisions still open:** backend rule (is a free Cloudflare account OK?), end card default (recommended: none), the D1-D11 and V1-V11 defaults in `reports/Introcut V1 feasibility study.md`.
+
+**Week-zero checks (before more building):** export speed on the owner's PC and a second machine; Gemini from the browser with a real key; Hindi/Nepali voice listening; Dodo sign-up; re-read YouTube policy.
+
+Reports: `reports/Introcut V1 feasibility study.md` (the plan), `reports/Code generated 30 second clips plan.md`, research notes in `research_notes/`.
 
 **M-Slice ("video through code") is built: one story, end to end, in the browser.** Decided from `reports/Code based video generation options.md`: Introcut now makes videos from code-drawn scenes, not only from generated clips.
 - **Drawing:** `src/render/renderFrame.ts` is the ONE function that draws a frame; the preview (`Player.ts`) and the exporter both call it. Built-in animated templates in `src/render/templates.ts` (hook text, big number, end card; props checked with Zod, the AI only fills props, never writes code). Stills get a slow push-in (`framing.mode = "auto-zoom"`). Word-by-word captions. Bundled fonts (Inter + Noto Sans Devanagari, OFL) in `fonts.ts`.
