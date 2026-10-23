@@ -12,7 +12,16 @@ You bring an idea, your material (screenshots, screen recording, selfie) and the
 
 No backend, no paid APIs, no uploads: your media never leaves your device.
 
-> **Status:** planning complete, building starts at Milestone 1. See [`STATUS.md`](STATUS.md).
+> **Status (2026-10-23): early build, works end to end for simple stories.** Type a story, get a 30-second vertical video drawn entirely by code (animated cards, drawn backdrops and characters, captions, optional voice) and export it as an MP4, all in the browser. Pictures are chosen by keywords, characters do not act yet, and no real AI model has been tested. The current focus is turning a story into an *action timeline* so characters actually act. See [`STATUS.md`](STATUS.md).
+
+## New here? Read in this order
+1. [`STATUS.md`](STATUS.md): what is built, what is locked for V1, open decisions.
+2. [`docs/RETROSPECTIVE.md`](docs/RETROSPECTIVE.md): what we did, what went wrong, ratings, what to improve.
+3. [`reports/`](reports/): the research reports (script writing, video through code, the 30 s clips plan, the V1 feasibility study). Raw notes behind them are in [`research_notes/`](research_notes/). Many claims there are marked "verify"; treat them as leads, not facts.
+4. [`CLAUDE.md`](CLAUDE.md): the hard rules (zero cost, permissive licences only, honesty, locks).
+5. Code map: `src/model` (project schema and ops), `src/render` (the one drawing function, templates, art), `src/ai` (brains, compiler, picture chooser), `src/export` (MP4), `src/audio` (mix, voice), `src/ui` (screens).
+
+Quick check: `npm test` (68 unit tests) and `npm run build`.
 
 ## Run it
 ```
